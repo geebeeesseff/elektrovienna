@@ -1,0 +1,66 @@
+# Python, packaging, virtual environments, and tooling caches
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+.tox/
+.nox/
+.coverage*
+htmlcov/
+
+# Environment files, credentials, tokens, and secrets
+.env
+.env.*
+credentials/
+secrets/
+.secrets/
+credentials*.json
+client_secret*.json
+token*.json
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Runtime databases and sidecar files
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+
+# Local processing state and generated runtime content
+.state/
+state/
+runtime/
+data/
+knowledgebase/
+Knowledgebase/
+00_raw/
+10_documents/
+20_extractions/
+30_cases/
+40_knowledge/
+90_manual_review/
+99_logs/
+exports/
+logs/
+*.log
+*.eml
+*.msg
+*.pdf
+
+# Local editor and operating-system files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+Desktop.ini
