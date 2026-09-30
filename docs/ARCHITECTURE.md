@@ -1,6 +1,6 @@
 # Architecture foundation
 
-Status: conceptual architecture only. No integrations or business processing are implemented.
+Status: Phase 1 read-only Gmail metadata inventory is implemented. Later integrations and business processing remain conceptual.
 
 ## Boundaries and flow
 
@@ -45,7 +45,18 @@ Initial authorization uses local OAuth for a desktop application with the least-
 %LOCALAPPDATA%\ElektroViennaKnowledge\credentials\
 ```
 
-These are architectural decisions only; authentication and ingestion are not implemented in this task.
+Phase 1 implements these decisions using Desktop OAuth and authenticated HTTPS GETs, without a Gmail SDK service object that exposes mailbox mutation methods. The provider interface returns immutable Python discovery records; persistence and orchestration never consume Google response dictionaries.
+
+### Implemented Phase 1 recovery and storage decisions
+
+- `models.MailReader` is the provider boundary; `state.InventoryState` describes the operations used by discovery. `SQLiteState` implements only technical inventory persistence. No later-phase service layers are added.
+- SQLite schema version 1 uses message identity `(mailbox, message_id)` and attachment occurrence identity `(mailbox, message_id, part_id)`, retaining provider thread/attachment IDs. Messages are explicitly `discovered` or `excluded`, with `archived=0`; no byte hashes or archive references are invented.
+- A durable page queue precedes message reads. Each message and all its attachment descriptors commit with its work status. Pagination advances only after the entire queued page finishes. Failures retain sanitized codes/attempt counts and stop; rerunning retries pending work. OS-held locking enforces one importer per database.
+- Separate validation/historical checkpoints share the same deduplicated inventory. Completed passes restart reconciliation without clearing records. Explicit pagination restart recovers expired list tokens without erasing inventory. Failed message reads remain blocking/incomplete, including source disappearance; no automatic skip policy is introduced.
+- Gmail lists are not snapshots. Completed passes may be rerun to catch changes. Previously observed records remain retained; absence from later listings is not proof of deletion or current label status.
+- Configuration overrides stay under Windows LocalAppData, resolved from Windows itself. Git ancestry, redirected paths, registered OneDrive sync roots, and recognizable synchronized-directory names are rejected. Credentials/state remain separate; CLI statistics use SQLite read-only mode and no provider access.
+- API projection excludes message/attachment bytes, snippets, and raw source. MIME depth beyond 20 is reported incomplete via sentinel children, never silently truncated. Subject/body content is not persisted. Only selected addressing/threading/date headers are retained.
+- Back up SQLite only while the importer is stopped, to private local nonsynchronized storage. No automatic backup or SharePoint copy is implemented. Future schema versions require explicit migrations; unknown schema versions fail closed.
 
 ## Storage separation
 
@@ -88,7 +99,7 @@ For the initial single-machine implementation, durable technical processing stat
 %LOCALAPPDATA%\ElektroViennaKnowledge\state\pipeline.sqlite3
 ```
 
-This database holds Gmail provider message IDs, thread IDs, attachment identities, pagination/checkpoints, processing status, retries, failures, hashes, and idempotency state. It is not the canonical store for business knowledge or the Case timeline. Keep technical-state persistence behind a clear interface so later multi-machine/server execution can migrate to a suitable store without redefining business entities. Transaction and recovery details will be designed during implementation. SharePoint synchronization is not a transaction mechanism or an application audit trail.
+This database holds Gmail provider message IDs, thread IDs, attachment identities, pagination/checkpoints, processing status, retries, failures, and idempotency state. Hashes are deferred until Phase 2 acquires bytes. It is not the canonical store for business knowledge or the Case timeline. Technical-state persistence stays behind a clear interface so later multi-machine/server execution can migrate to a suitable store without redefining business entities. Transaction and recovery details are documented above. SharePoint synchronization is not a transaction mechanism or an application audit trail.
 
 ## Identity, provenance, and reprocessing
 
@@ -120,12 +131,12 @@ An Appointment draft is distinct from a published Outlook event. Customer/employ
 
 ## Open decisions
 
-- SQLite transaction/recovery details, local backup strategy, and eventual migration needs; the initial technical-state engine and location are decided above.
-- Reconciliation after partial Gmail imports; historical cutoff, coverage, and initial OAuth authorization are decided above.
+- Future schema/server migrations and automated backup requirements; Phase 1 transaction/recovery and stopped-importer local backup procedures are decided above.
+- Comprehensive mailbox change reconciliation and operator policy for disappeared/inaccessible messages; Phase 1 preserves incomplete work and supports explicit list-token restart.
 - Archive formats, source locator conventions, identifiers, retention, access permissions, and handling of provider source disappearance.
 - Actual Airtable field mappings, record ownership, case/ticket cardinality, matching rules, and any eventual write-back.
 - Review ownership, evidence sufficiency, knowledge applicability, confidence representation, and conflict resolution policy.
 - Extraction technology, evaluation samples, and handling of sensitive data in any later external processor.
 - Calendar ownership, employee/technician identity mapping, required fields for approval, and explicit publish/send authorization controls.
 
-Resolve decisions at their milestone and record them here before relying on them. They do not block this documentation-only foundation.
+Resolve decisions at their milestone and record them here before relying on them. Phase 1 does not authorize later milestones.

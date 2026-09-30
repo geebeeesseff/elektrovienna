@@ -1,6 +1,19 @@
 # Conceptual data model
 
-This is a conceptual contract, not an implemented schema. Fields below describe intended information; business-record persistence types and migrations remain undecided. Initial technical processing state uses SQLite outside Git and SharePoint at `%LOCALAPPDATA%\ElektroViennaKnowledge\state\pipeline.sqlite3`. It stores Gmail provider message IDs, thread IDs, attachment identities, pagination/checkpoints, processing status, retries, failures, hashes, and idempotency state, not canonical business knowledge or the Case timeline. The design must allow later migration for multi-machine/server execution. Unknown values remain unknown, with provenance and review status where relevant. Use stable internal IDs, timestamps, explicit provider references, and revision history for mutable interpretations.
+Business records remain a conceptual contract; their persistence types and migrations remain undecided. The implemented Phase 1 technical schema is described below. It uses SQLite outside Git and SharePoint at `%LOCALAPPDATA%\ElektroViennaKnowledge\state\pipeline.sqlite3` for Gmail message/thread/attachment identities, pagination/checkpoints, processing status, retries, failures, and idempotency state, not canonical business knowledge or the Case timeline. Hashes await original byte acquisition in Phase 2. The design must allow later migration for multi-machine/server execution. Unknown values remain unknown, with provenance and review status where relevant. Use stable internal IDs, timestamps, explicit provider references, and revision history for mutable interpretations.
+
+## Implemented Phase 1 technical schema (version 1)
+
+The conceptual business entities below remain unimplemented. Local SQLite has only these inventory tables:
+
+| Table | Identity and purpose |
+| --- | --- |
+| `messages` | Primary key `(mailbox, message_id)`; provider thread ID, internal timestamp in epoch milliseconds, selected addressing/threading/date headers, labels, discovered/excluded state, first/last observation timestamps. `archived` is constrained to zero. |
+| `attachments` | Primary key `(mailbox, message_id, part_id)`; parent message foreign key, optional provider attachment ID, filename, MIME type, and declared size. Part identity also covers inline parts without separate attachment IDs. No attachment bytes or fabricated content hash. |
+| `scans` | One versioned checkpoint per mailbox/cutoff/mode; current and next page tokens, queued-page flag, completion flag, seen tokens for cycle detection, failure count, sanitized last error, update timestamp. Validation and historical modes are distinct. |
+| `work` | Primary key `(scan_key, message_id)`; pending/failed/discovered/excluded status, cumulative attempts, sanitized last error. Retries and repeated passes update the existing technical record. |
+
+Listed pages become durable before message retrieval. A message, attachment metadata, and work completion commit atomically; checkpoint advancement follows all queued message commits. No business entities, classification, extraction, source bytes, or canonical knowledge are stored. Scans are resumable processing state, not a versioned business ProcessingRun history. Later extraction/archiving must introduce its own operation/version provenance.
 
 ## Source and interpretation records
 

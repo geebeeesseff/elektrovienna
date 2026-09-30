@@ -2,13 +2,15 @@
 
 Milestones are incremental and human-reviewed. Technology choices are made when evidence supports them. Completion requires inspecting changes and running the relevant checks, with limitations reported. No milestone authorizes work in later phases automatically.
 
-## Phase 0 — Repository and architecture foundation (current scope)
+## Phase 0 — Repository and architecture foundation (completed)
 
 Deliver `AGENTS.md`, the four architecture documents, a minimal installable Python package scaffold, a tests location, and `.gitignore`. Inspect consistency and the final repository contents. No business logic, runtime knowledge folders, fake data, provider integrations, OAuth, PDF extraction, AI classification, or customer communications.
 
 ## Phase 1 — READ-ONLY HISTORICAL GMAIL INGESTION
 
 This is the first implementation milestone after the foundation.
+
+Implementation status: read-only CLI, Desktop OAuth, provider boundary, SQLite inventory/resume state, and synthetic automated tests are implemented. Real Gmail validation remains pending separate Desktop OAuth setup and authorized account access. Phase 2 is not started.
 
 - Authenticate to Gmail for `office@elektrovienna.at` using local OAuth for a desktop application and the least-privilege Gmail read-only scope `https://www.googleapis.com/auth/gmail.readonly`. Store credential and token files outside Git and all SharePoint-synchronized storage, including the Knowledgebase, in the default directory `%LOCALAPPDATA%\ElektroViennaKnowledge\credentials\`.
 - Read historical messages from `2026-01-01 00:00:00 Europe/Vienna`, inclusive. Include received, sent, and archived mail, replies, and forwarded messages; initially exclude spam, trash, and drafts. A coarse Gmail API query may improve efficiency, but the application must enforce the exact cutoff using provider timestamps.
@@ -18,6 +20,8 @@ This is the first implementation milestone after the foundation.
 - Make **NO mailbox modifications**, perform **NO AI extraction**, **send NOTHING**, and **delete NOTHING**. No Gmail label or read-status mutations.
 
 Acceptance: tests establish stable identity, the exact inclusive cutoff using provider timestamps, included/excluded mail coverage, pagination, interrupted resume, repeat-import deduplication, and safe failure behavior. Check SQLite and credential/token locations remain outside Git and SharePoint, and authorization uses only the specified read-only scope. Validate that the adapter has no mailbox mutation/send path. Report discovered counts and incomplete items without presenting metadata discovery as completed original archiving. A real read-only validation requires separately configured credentials and authorized access; tests must not pretend that a live integration was exercised.
+
+Acceptance evidence is in `tests/test_inventory.py` (identity, boundaries, coverage, transactions, pagination/resume, failures, persistence and idempotency), `tests/test_gmail.py` (metadata mapping/projection, OAuth scope, sanitized API failures and read-only adapter structure), and `tests/test_config_cli.py` (local storage guards and operator errors/statistics). README documents exact commands, setup, dependencies, recovery, and known pagination/MIME limits. Packaging and full-suite results must be reported for each delivery; the tests do not replace live validation.
 
 ## Later milestones
 
@@ -40,4 +44,4 @@ Acceptance: tests establish stable identity, the exact inclusive cutoff using pr
 
 ## Decisions to resolve as work advances
 
-Use `ARCHITECTURE.md` as the decision record. Initial OAuth authorization and credential location, exact Gmail cutoff/coverage, and SQLite technical-state storage are resolved there. Phase 1 must still design transaction/recovery details, local backups, and partial-import reconciliation. Before later phases, resolve archive formats, Airtable mappings, review and knowledge promotion policies, external processing/privacy choices, and calendar/communication authorization. Update the architecture and conceptual model deliberately as those choices become concrete. These documentation amendments do not implement Phase 1 or CaseEvent functionality.
+Use `ARCHITECTURE.md` as the decision record. Initial OAuth authorization and credential location, exact Gmail cutoff/coverage, SQLite state, Phase 1 transaction/recovery details, stopped-importer local backups, and repeated-pass reconciliation are resolved there. Comprehensive change tracking and policy for unavailable source messages remain open. Before later phases, resolve archive formats, Airtable mappings, review and knowledge promotion policies, external processing/privacy choices, and calendar/communication authorization. Update the architecture and conceptual model deliberately as those choices become concrete. CaseEvent functionality remains conceptual.
