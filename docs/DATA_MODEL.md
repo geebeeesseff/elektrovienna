@@ -1,6 +1,6 @@
 # Conceptual data model
 
-This is a conceptual contract, not an implemented schema. Fields below describe intended information; business-record persistence types and migrations remain undecided. Initial technical processing state uses SQLite outside Git and SharePoint at `%LOCALAPPDATA%\ElektroViennaKnowledge\state\pipeline.sqlite3`. It stores provider message IDs, attachment identities, pagination/checkpoints, processing status, retries, failures, hashes, and idempotency state, not canonical business knowledge or the Case timeline. The design must allow later migration for multi-machine/server execution. Unknown values remain unknown, with provenance and review status where relevant. Use stable internal IDs, timestamps, explicit provider references, and revision history for mutable interpretations.
+This is a conceptual contract, not an implemented schema. Fields below describe intended information; business-record persistence types and migrations remain undecided. Initial technical processing state uses SQLite outside Git and SharePoint at `%LOCALAPPDATA%\ElektroViennaKnowledge\state\pipeline.sqlite3`. It stores Gmail provider message IDs, thread IDs, attachment identities, pagination/checkpoints, processing status, retries, failures, hashes, and idempotency state, not canonical business knowledge or the Case timeline. The design must allow later migration for multi-machine/server execution. Unknown values remain unknown, with provenance and review status where relevant. Use stable internal IDs, timestamps, explicit provider references, and revision history for mutable interpretations.
 
 ## Source and interpretation records
 
@@ -31,7 +31,7 @@ Unresolved source and offer records may exist before a Case is known. Matching c
 
 ## CaseEvent: first-class entity
 
-Each CaseEvent belongs to exactly one Case; a Case may have zero or more CaseEvents. Its purpose is to preserve the operational timeline of how an inquiry becomes a scoped and priced job and reaches execution/outcome, including information that never appears in Gmail.
+Each CaseEvent belongs to exactly one Case; a Case may have zero or more CaseEvents. Its purpose is to preserve the operational timeline: inquiry → clarification → technical assessment → offer → scheduling → execution → outcome, including information that never appears in Gmail.
 
 | Field | Intended information, where applicable |
 | --- | --- |
@@ -52,7 +52,7 @@ Each CaseEvent belongs to exactly one Case; a Case may have zero or more CaseEve
 
 Initial candidate event types are `email`, `call`, `whatsapp`, `note`, `technician_feedback`, `offer_created`, `offer_sent`, `appointment`, `site_visit`, `status_change`, `outcome`, and `other`. Appointment changes can be recorded with the `appointment` type and an explanatory summary. These are candidate labels, not a state-transition model.
 
-CaseEvents preserve chronology and links; they do not replace SourceMessage, Document, Offer, Appointment, or Evidence. Recording an `offer_sent` event describes an attributable occurrence and does not authorize sending. A manual note or feedback event is not automatically knowledge: preserve its attributable source and carry derived claims through extraction/interpretation and Evidence before knowledge promotion.
+CaseEvents complement Evidence: events preserve what happened and when, while Evidence records contextual claims with source support. CaseEvents preserve chronology and links; they do not replace SourceMessage, Document, Offer, Appointment, or Evidence. Recording an `offer_sent` event describes an attributable occurrence and does not authorize sending. A manual note or feedback event is not automatically knowledge: preserve its attributable source and carry derived claims through extraction/interpretation and Evidence before knowledge promotion.
 
 ## Appointment: first-class entity
 

@@ -37,9 +37,9 @@ Gmail ingestion must not use Outlook or Microsoft Graph mail, even if Outlook is
 
 ## Phase 1 Gmail decisions
 
-Historical coverage starts at **2026-01-01 00:00:00 Europe/Vienna**, inclusive. Include received mail, sent mail, archived mail, replies, and forwarded messages. Initially exclude spam, trash, and drafts. Do not restrict ingestion by sender or technician. A coarse Gmail API query may be used for efficiency, but the application must enforce the exact cutoff using provider timestamps.
+Historical coverage starts at **2026-01-01 00:00:00 Europe/Vienna**, inclusive. Include received mail, sent mail, archived mail, replies, and forwarded messages. Initially exclude spam, trash, and drafts. Do not restrict ingestion by sender, technician, or presumed relevance. A coarse Gmail API query may be used for efficiency, but the application must enforce the exact cutoff using provider timestamps.
 
-Initial authorization uses local OAuth for a desktop application with the least-privilege Gmail read-only scope `https://www.googleapis.com/auth/gmail.readonly`. Credential and token files must remain outside Git and outside the SharePoint Knowledgebase. Their default directory is:
+Initial authorization uses local OAuth for a desktop application with the least-privilege Gmail read-only scope `https://www.googleapis.com/auth/gmail.readonly`. Credential and token files must remain outside Git and outside all SharePoint-synchronized storage, including the Knowledgebase. Their default directory is:
 
 ```text
 %LOCALAPPDATA%\ElektroViennaKnowledge\credentials\
@@ -88,7 +88,7 @@ For the initial single-machine implementation, durable technical processing stat
 %LOCALAPPDATA%\ElektroViennaKnowledge\state\pipeline.sqlite3
 ```
 
-This database holds provider message IDs, attachment identities, pagination/checkpoints, processing status, retries, failures, hashes, and idempotency state. It is not the canonical store for business knowledge or the Case timeline. Keep technical-state persistence behind a clear interface so later multi-machine/server execution can migrate to a suitable store without redefining business entities. Transaction and recovery details will be designed during implementation. SharePoint synchronization is not a transaction mechanism or an application audit trail.
+This database holds Gmail provider message IDs, thread IDs, attachment identities, pagination/checkpoints, processing status, retries, failures, hashes, and idempotency state. It is not the canonical store for business knowledge or the Case timeline. Keep technical-state persistence behind a clear interface so later multi-machine/server execution can migrate to a suitable store without redefining business entities. Transaction and recovery details will be designed during implementation. SharePoint synchronization is not a transaction mechanism or an application audit trail.
 
 ## Identity, provenance, and reprocessing
 
@@ -108,7 +108,7 @@ Matching proposals retain candidates, rationale, uncertainty, and the eventual r
 
 A Case has zero or more first-class CaseEvents preserving how an inquiry becomes a scoped, priced, executed job and an outcome. Events cover email as well as calls, WhatsApp, manual notes, technician feedback, site visits, offer creation/sending, appointment changes, and status changes. Each event belongs to a Case and retains its timestamp, type, actor, source/channel, summary, provenance, optional original/raw text reference, and applicable SourceMessage, Document, Offer, or Appointment links. Machine-generated events also reference their ProcessingRun.
 
-CaseEvents record chronology; they do not replace the linked entities, authorize sending or status transitions, or bypass SOURCE → EXTRACTION → EVIDENCE → KNOWLEDGE. Non-email events can rely on an attributable human source without inventing a SourceMessage. Keep event types lightweight; no event-sourcing framework or elaborate state machine is selected.
+The timeline is inquiry → clarification → technical assessment → offer → scheduling → execution → outcome. CaseEvents complement Evidence: events preserve what happened and when, while Evidence records contextual claims with source support. CaseEvents do not replace the linked entities, authorize sending or status transitions, or bypass SOURCE → EXTRACTION → EVIDENCE → KNOWLEDGE. Non-email events can rely on an attributable human source without inventing a SourceMessage. Keep event types lightweight; no event-sourcing framework or elaborate state machine is selected.
 
 ## Appointment and communication separation
 

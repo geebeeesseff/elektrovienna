@@ -10,7 +10,7 @@ Document management is not the main purpose. Emails, documents, offers, invoices
 
 The system should improve with every processed case without allowing the newest case, newest offer, or newest feedback to silently replace established knowledge.
 
-Preserve the operational chronology of each Case through attributable CaseEvents. Calls, WhatsApp communication, manual notes, technician feedback, site visits, offer creation/sending, appointment and status changes, and outcomes explain how an inquiry becomes a scoped and priced job, including events that never appear in Gmail. Timeline entries retain their sources; they do not automatically become reusable knowledge.
+Preserve the operational chronology of each Case through attributable CaseEvents: inquiry → clarification → technical assessment → offer → scheduling → execution → outcome. Calls, WhatsApp communication, manual notes, technician feedback, site visits, offer creation/sending, appointment and status changes, and outcomes explain how an inquiry becomes a scoped and priced job, including events that never appear in Gmail. Timeline entries complement Evidence and retain their sources; they do not automatically become reusable knowledge.
 
 ## Who the system serves
 
@@ -31,7 +31,7 @@ Reusable knowledge remains linked to its supporting and conflicting evidence and
 
 ## Operational context
 
-- Email: Gmail mailbox `office@elektrovienna.at`; historical import starts `2026-01-01 00:00:00 Europe/Vienna`, inclusive. Include received, sent, and archived mail, replies, and forwarded messages; initially exclude spam, trash, and drafts. Do not restrict by sender or technician. Reading that mailbox in Outlook does not change the ingestion provider.
+- Email: Gmail mailbox `office@elektrovienna.at`; historical import starts `2026-01-01 00:00:00 Europe/Vienna`, inclusive. Include received, sent, and archived mail, replies, and forwarded messages; initially exclude spam, trash, and drafts. Do not restrict by sender, technician, or presumed relevance. Reading that mailbox in Outlook does not change the ingestion provider.
 - CRM: Airtable Customers, Tickets, and Craftsmen. Reuse existing identities and ticket information where appropriate; avoid duplicate customer and case systems.
 - Scheduling: Microsoft Outlook Calendar, separate from Gmail email ingestion.
 - Knowledge storage: the SharePoint-synchronized Knowledgebase root defined in `ARCHITECTURE.md`.
