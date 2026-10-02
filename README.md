@@ -16,7 +16,7 @@ Start with [AGENTS.md](AGENTS.md), then read:
 Run from this repository with a locally installed Python:
 
 ```powershell
-py -3 -m venv .venv
+python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e '.[dev]'
 .\.venv\Scripts\python.exe -m pytest -q
 ```
@@ -66,7 +66,11 @@ Default state: `%LOCALAPPDATA%\ElektroViennaKnowledge\state\pipeline.sqlite3`.
 
 One OS-held lock allows one writer per database, and is released on process exit/crash. SQLite commits each listed page before fetching messages. Each message, attachment metadata, and work status commit together; a page token advances only after every queued item is durable. Identities are `(mailbox, Gmail message ID)` and `(mailbox, message ID, MIME part ID)`; thread ID and provider attachment ID are retained separately. Repeated imports upsert the same records. Metadata-only and inline attachments retain part identity even without a Gmail attachment ID. No content hashes are invented without bytes.
 
-API errors stop immediately and save a sanitized failure code and attempt count. Retry by rerunning the same command; there is no unbounded automatic retry. An inaccessible/deleted message (including HTTP 404) remains failed and blocks that page rather than being silently skipped. Expired list tokens can be restarted using the command above, provided no queued messages remain unfinished. Unresolved message failures require operator investigation; no destructive skip/reset command is supplied. Statistics show discovered/excluded counts, attachment occurrences, incomplete work, failure counts, and `originals_archived: 0`.
+Gmail GET attempts are spaced at least 250 ms apart (at most approximately 4/second), including messages, list/profile overhead, and retries. The first request is immediate; network time counts toward the spacing, with no catch-up burst after a pause. At 20 quota units per message GET this uses at most approximately 4,800 units/minute, below the new-project 6,000-unit per-user/project limit; list/profile requests cost less and share the same pacing. Small validations use the same short spacing, without a startup cooldown. Other applications sharing the account/project can still consume quota. See [Google's current quotas](https://developers.google.com/workspace/gmail/api/reference/quota).
+
+HTTP 403 `rateLimitExceeded` / `userRateLimitExceeded`, HTTP 429, and transient HTTP 500/502/503/504 receive up to **6 retries** (7 attempts total per logical GET). Backoff is `min(2^n + random(0..1), 32)` seconds, starting at 1–2 seconds; each retry draws new jitter. Daily-limit, domain-policy, authorization, unknown 403, and other non-transient errors stop immediately. Transport failures retain the existing stop-and-resume behavior. Only allowlisted reasons such as `gmail_rate_limit_exceeded`, `gmail_user_rate_limit_exceeded`, `gmail_daily_limit_exceeded`, `gmail_domain_policy`, or numeric `gmail_http_*` codes escape the adapter; provider error text/bodies are never logged or persisted.
+
+After retry exhaustion or a non-retryable error, the importer saves a sanitized failure code and attempt count. SQLite counts logical processing attempts/final failures; individual HTTP retries remain internal to the adapter. Resume with the same `inventory` command, **without `--restart-pagination` for rate-limit recovery**. An inaccessible/deleted message (including HTTP 404) remains failed and blocks that page rather than being silently skipped. Expired list tokens can be restarted using the command above, provided no queued messages remain unfinished. Unresolved message failures require operator investigation; no destructive skip/reset command is supplied. Statistics show discovered/excluded counts, attachment occurrences, incomplete work, failure counts, and `originals_archived: 0`.
 
 Gmail pagination is not a transactional snapshot. Rerun completed inventories to discover changes during or after a pass. Previously observed messages/attachments are retained even if absent from later lists; no deletion or comprehensive label-change reconciliation is claimed. A candidate seen as excluded is explicitly marked, but messages no longer returned by Gmail cannot have their current status inferred.
 
@@ -84,6 +88,6 @@ For backups, stop the importer and make a private local copy of the SQLite file;
 git diff --check
 ```
 
-Tests use synthetic providers, responses, and temporary local state only. They do not validate live Gmail access. A real validation still requires the Desktop OAuth file and successful consent for the target mailbox. Phase 2 archiving remains unimplemented.
+Tests use synthetic providers, responses, fake clocks, and temporary local state only. Live status (operator-reported, 2026-10-02): OAuth works for `office@elektrovienna.at`; two `validate --limit 10` runs succeeded with zero failures. Initial historical attempts exposed a generic HTTP 403 and later a transport failure. After quota pacing/retry hardening and normal resume, the historical inventory completed successfully: `completed: true`, **1375 discovered messages**, **2950 attachment occurrences**, `incomplete: 0`, and `last_error: null`. The historical failures counter remains **2**, recording prior stopped/failed attempts rather than current incomplete work. `originals_archived: 0` is expected: Phase 2 has not started, and Phase 1 downloads no message-body or attachment bytes.
 
 Provider references: [Gmail timestamp and MIME metadata](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages), [Gmail query/time-zone semantics](https://developers.google.com/workspace/gmail/api/guides/filtering), and [Desktop OAuth flow](https://googleapis.dev/python/google-auth-oauthlib/latest/reference/google_auth_oauthlib.flow.html).

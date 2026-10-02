@@ -95,7 +95,7 @@ def test_adapter_gets_only_metadata_and_broad_query():
 
 @pytest.mark.parametrize("status", [301, 400, 401, 403, 404, 429, 500, 503])
 def test_http_failures_sanitized(status):
-    reader = gmail.GmailReader(session_returning({"secret": "must not leak"}, status))
+    reader = gmail.GmailReader(session_returning({"secret": "must not leak"}, status), sleep=lambda _: None)
     with pytest.raises(ProviderError, match=f"^gmail_http_{status}$"):
         reader.get_message("abc")
 

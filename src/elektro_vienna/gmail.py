@@ -3,6 +3,8 @@
 import json
 import os
 import re
+import random
+import time
 from urllib.parse import quote
 
 from google.auth.exceptions import GoogleAuthError
@@ -18,6 +20,34 @@ from .models import Attachment, Message, Page, ProviderError, SCOPES
 BASE_URL = "https://gmail.googleapis.com/gmail/v1/users/me"
 HEADER_NAMES = frozenset({"from", "to", "cc", "bcc", "date", "message-id", "in-reply-to", "references"})
 MAX_MIME_DEPTH = 20
+REQUEST_INTERVAL = 0.25
+MAX_RETRIES = 6
+MAX_BACKOFF = 32.0
+
+
+def http_failure(response) -> tuple[str, bool]:
+    """Only allowlisted reason codes cross the provider boundary, never error text."""
+    status = response.status_code
+    fallback = (f"gmail_http_{status}", status in {429, 500, 502, 503, 504})
+    if status != 403:
+        return fallback
+    try:
+        errors = response.json()["error"]["errors"]
+        if not isinstance(errors, list) or not errors:
+            return fallback
+        reasons = {error["reason"] for error in errors}
+    except (ValueError, KeyError, TypeError):
+        return fallback
+    # Policy/daily failures win over a simultaneous transient reason.
+    for reason, code in (("domainPolicy", "gmail_domain_policy"),
+                         ("dailyLimitExceeded", "gmail_daily_limit_exceeded")):
+        if reason in reasons:
+            return code, False
+    if not reasons.issubset({"rateLimitExceeded", "userRateLimitExceeded"}):
+        return fallback
+    if "userRateLimitExceeded" in reasons:
+        return "gmail_user_rate_limit_exceeded", True
+    return "gmail_rate_limit_exceeded", True
 
 
 def part_fields(depth: int) -> str:
@@ -120,19 +150,35 @@ def parse_message(raw: dict) -> Message:
 
 
 class GmailReader:
-    def __init__(self, session):
+    def __init__(self, session, *, sleep=time.sleep, clock=time.monotonic, jitter=random.random):
         self._session = session
+        self._sleep = sleep
+        self._clock = clock
+        self._jitter = jitter
+        self._next_request = 0.0
 
     def _get(self, path: str, params: dict) -> dict:
         try:
-            response = self._session.get(BASE_URL + path, params=params, timeout=30, allow_redirects=False)
-            if response.status_code != 200:
-                raise ProviderError(f"gmail_http_{response.status_code}")
-            result = response.json()
-            if not isinstance(result, dict):
-                raise ValueError
-            return result
-        except (RequestException, GoogleAuthError):
+            for attempt in range(MAX_RETRIES + 1):
+                # Pace all Gmail GETs, including retries and list/profile overhead.
+                # First request is immediate; slow requests already satisfy the interval.
+                delay = self._next_request - self._clock()
+                if delay > 0:
+                    self._sleep(delay)
+                self._next_request = self._clock() + REQUEST_INTERVAL
+                response = self._session.get(BASE_URL + path, params=params, timeout=30, allow_redirects=False)
+                if response.status_code == 200:
+                    result = response.json()
+                    if not isinstance(result, dict):
+                        raise ValueError
+                    return result
+                code, retryable = http_failure(response)
+                if not retryable or attempt == MAX_RETRIES:
+                    raise ProviderError(code)
+                self._sleep(min(2 ** attempt + self._jitter(), MAX_BACKOFF))
+        except GoogleAuthError:
+            raise ProviderError("gmail_authentication_failed") from None
+        except RequestException:
             raise ProviderError("gmail_transport_failure") from None
         except ValueError:
             raise ProviderError("gmail_invalid_response") from None
