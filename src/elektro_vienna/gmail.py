@@ -1,5 +1,7 @@
-"""Gmail adapter: only profile, message listing, and metadata GETs exist here."""
+"""GET-only Gmail adapter; byte acquisition is separate from Phase 1 metadata reads."""
 
+import base64
+import binascii
 import json
 import os
 import re
@@ -15,7 +17,7 @@ from oauthlib.oauth2 import OAuth2Error
 from requests.exceptions import RequestException
 
 from .config import Config, ConfigurationError
-from .models import Attachment, Message, Page, ProviderError, SCOPES
+from .models import Attachment, Message, OriginalMessage, Page, ProviderError, SCOPES
 
 BASE_URL = "https://gmail.googleapis.com/gmail/v1/users/me"
 HEADER_NAMES = frozenset({"from", "to", "cc", "bcc", "date", "message-id", "in-reply-to", "references"})
@@ -57,6 +59,23 @@ def part_fields(depth: int) -> str:
 
 
 MESSAGE_FIELDS = "id,threadId,internalDate,labelIds,payload(" + part_fields(MAX_MIME_DEPTH) + ")"
+
+
+def inline_part_fields(depth: int) -> str:
+    fields = "partId,mimeType,filename,body(attachmentId,size,data)"
+    return fields + ",parts(" + (inline_part_fields(depth - 1) if depth else "partId") + ")"
+
+
+INLINE_FIELDS = "id,payload(" + inline_part_fields(MAX_MIME_DEPTH) + ")"
+
+
+def decode_bytes(value) -> bytes:
+    try:
+        if not isinstance(value, str) or not re.fullmatch(r"[A-Za-z0-9_-]*={0,2}", value):
+            raise ValueError
+        return base64.b64decode(value + "=" * (-len(value) % 4), altchars=b"-_", validate=True)
+    except (ValueError, binascii.Error):
+        raise ProviderError("gmail_invalid_source_bytes") from None
 
 
 def check_scopes(scopes) -> None:
@@ -213,3 +232,88 @@ class GmailReader:
         if result.message_id != message_id:
             raise ProviderError("message_identity_mismatch")
         return result
+
+    def get_original(self, message_id: str) -> OriginalMessage:
+        raw = self._get("/messages/" + quote(message_id, safe=""),
+                        {"format": "raw", "fields": "id,threadId,internalDate,raw"})
+        try:
+            if (raw["id"] != message_id or not isinstance(raw["threadId"], str)
+                    or not raw["threadId"] or not isinstance(raw["internalDate"], str)
+                    or not raw["internalDate"].isdecimal()):
+                raise ValueError
+            data = decode_bytes(raw["raw"])
+            if not data:
+                raise ValueError
+            return OriginalMessage(message_id, raw["threadId"], int(raw["internalDate"]), data)
+        except (KeyError, TypeError, ValueError):
+            raise ProviderError("gmail_invalid_original") from None
+
+    def get_attachment(self, message_id: str, attachment: Attachment) -> bytes:
+        path = "/messages/" + quote(message_id, safe="")
+        if attachment.attachment_id:
+            body = self._get(path + "/attachments/" + quote(attachment.attachment_id, safe=""),
+                             {"fields": "data,size"})
+        else:
+            return self.get_inline_attachment(message_id, attachment)
+        # Google's JSON may omit the empty base64 string for a zero-length leaf.
+        if "data" not in body and not (body.get("size") == 0 and attachment.size == 0):
+            raise ProviderError("attachment_bytes_unavailable")
+        data = decode_bytes(body.get("data", ""))
+        if (type(body.get("size")) is not int or body["size"] != len(data)
+                or attachment.size != len(data)):
+            raise ProviderError("attachment_size_mismatch")
+        return data
+
+    def get_inline_attachment(self, message_id: str, attachment: Attachment) -> bytes:
+        """Read an exact Gmail part body, including a declared empty container body."""
+        if attachment.attachment_id is not None:
+            raise ProviderError("inline_attachment_id_unexpected")
+        raw = self._get("/messages/" + quote(message_id, safe=""),
+                        {"format": "full", "fields": INLINE_FIELDS})
+        if raw.get("id") != message_id:
+            raise ProviderError("attachment_identity_mismatch")
+        matches = []
+        seen = set()
+
+        def walk(part, depth=0):
+            if (depth > MAX_MIME_DEPTH or not isinstance(part, dict)
+                    or not isinstance(part.get("partId"), str)
+                    or not isinstance(part.get("mimeType"), str)):
+                raise ProviderError("gmail_invalid_inline_structure")
+            identity = part["partId"]
+            if identity in seen:
+                raise ProviderError("attachment_identity_mismatch")
+            seen.add(identity)
+            children = part.get("parts", [])
+            if not isinstance(children, list):
+                raise ProviderError("gmail_invalid_inline_structure")
+            if children and not part["mimeType"].startswith(("multipart/", "message/")):
+                raise ProviderError("gmail_invalid_inline_structure")
+            if identity == attachment.part_id:
+                matches.append(part)
+            for child in children:
+                walk(child, depth + 1)
+
+        walk(raw.get("payload"))
+        if not matches:
+            raise ProviderError("inline_part_not_found")
+        part = matches[0]
+        if part["mimeType"] != attachment.mime_type or part.get("filename", "") != attachment.filename:
+            raise ProviderError("attachment_identity_mismatch")
+        body = part.get("body")
+        if not isinstance(body, dict):
+            raise ProviderError("gmail_invalid_inline_structure")
+        if body.get("attachmentId") is not None:
+            raise ProviderError("inline_attachment_id_unexpected")
+        size = body.get("size")
+        if type(size) is not int or size < 0 or size != attachment.size:
+            raise ProviderError("attachment_size_mismatch")
+        if "data" not in body or body["data"] == "":
+            if size:
+                raise ProviderError("attachment_bytes_unavailable")
+            # This is the body's declared zero bytes, not a reconstructed MIME subtree.
+            return b""
+        data = decode_bytes(body["data"])
+        # Inline data is authoritative after identity and provider-size stability checks.
+        # Archival state records any difference from attachment.size as an anomaly.
+        return data

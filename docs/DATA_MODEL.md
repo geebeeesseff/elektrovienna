@@ -1,10 +1,10 @@
 # Conceptual data model
 
-Business records remain a conceptual contract; their persistence types and migrations remain undecided. The implemented Phase 1 technical schema is described below. It uses SQLite outside Git and SharePoint at `%LOCALAPPDATA%\ElektroViennaKnowledge\state\pipeline.sqlite3` for Gmail message/thread/attachment identities, pagination/checkpoints, processing status, retries, failures, and idempotency state, not canonical business knowledge or the Case timeline. Hashes await original byte acquisition in Phase 2. The design must allow later migration for multi-machine/server execution. Unknown values remain unknown, with provenance and review status where relevant. Use stable internal IDs, timestamps, explicit provider references, and revision history for mutable interpretations.
+Business records remain a conceptual contract; their persistence types and migrations remain undecided. The implemented technical schema is described below. It uses SQLite outside Git and SharePoint at `%LOCALAPPDATA%\ElektroViennaKnowledge\state\pipeline.sqlite3` for Gmail message/thread/attachment identities, pagination/checkpoints, processing status, retries, failures, and idempotency state, not canonical business knowledge or the Case timeline. Phase 2 adds integrity/provenance records only after original byte acquisition. The design must allow later migration for multi-machine/server execution. Unknown values remain unknown, with provenance and review status where relevant. Use stable internal IDs, timestamps, explicit provider references, and revision history for mutable interpretations.
 
 ## Implemented Phase 1 technical schema (version 1)
 
-The conceptual business entities below remain unimplemented. Local SQLite has only these inventory tables:
+The conceptual business entities below remain unimplemented. These inventory tables remain unchanged in schemas 2 and 3:
 
 | Table | Identity and purpose |
 | --- | --- |
@@ -13,7 +13,30 @@ The conceptual business entities below remain unimplemented. Local SQLite has on
 | `scans` | One versioned checkpoint per mailbox/cutoff/mode; current and next page tokens, queued-page flag, completion flag, seen tokens for cycle detection, failure count, sanitized last error, update timestamp. Validation and historical modes are distinct. |
 | `work` | Primary key `(scan_key, message_id)`; pending/failed/discovered/excluded status, cumulative attempts, sanitized last error. Retries and repeated passes update the existing technical record. |
 
-Listed pages become durable before message retrieval. A message, attachment metadata, and work completion commit atomically; checkpoint advancement follows all queued message commits. No business entities, classification, extraction, source bytes, or canonical knowledge are stored. Scans are resumable processing state, not a versioned business ProcessingRun history. Later extraction/archiving must introduce its own operation/version provenance.
+Listed pages become durable before message retrieval. A message, attachment metadata, and work completion commit atomically; checkpoint advancement follows all queued message commits. No business entities, classification, extraction, source bytes, or canonical knowledge are stored in SQLite. Scans are resumable processing state, not a versioned business ProcessingRun history.
+
+## Implemented Phase 2 technical additions (version 2)
+
+An additive `BEGIN IMMEDIATE` transaction creates the following tables and advances `user_version` to 2. Existing message, attachment, work and scan rows are untouched. Unknown versions fail closed. Read-only statistics support both versions without migration. Older application versions reject schema 2; use the upgraded application after migration. Back up state locally while no writer is running before first use.
+
+| Table | Identity and purpose |
+| --- | --- |
+| `archive_files` | Primary key `(mailbox, message_id, kind, part_id)`; kind is `message` or `attachment`, with empty part ID for raw message originals. A separate kind keeps root-part attachment ID `""` distinct from its message. Parent message foreign key, unique relative archive reference, content SHA-256, actual byte length, UTC archive timestamp, provider source locator and last verification flag. Attachment records join the inventoried occurrence on mailbox/message/part to retain provider attachment ID, original filename, MIME type and declared size. |
+| `archive_jobs` | Primary key `(mailbox, message_id)` with parent message foreign key; cumulative logical attempt/failure counters, last sanitized error and update timestamp. Success clears the outstanding error without resetting prior failures. Independent of Phase 1 scan state. |
+
+`messages.archived` remains the legacy zero-only column; archival counts now derive from verified `archive_files`, not this column. A complete job requires a recorded message original and every inventoried attachment occurrence. An interrupted or failed job remains incomplete even if some files are durable. Last verification is invalidated on observed missing/corrupt files. Statistics are a state snapshot and do not proactively rehash the filesystem.
+
+Originals live under `00_raw/gmail/<prefix>/<identity-hash>.eml` and occurrence bytes under `00_raw/attachments/<prefix>/<identity-hash>.bin`, rooted only at the authorized Knowledgebase. The prefix is the first two hex characters of the identity hash. Hash inputs and immutable publication rules are defined in ARCHITECTURE. Gmail source locators use percent-encoded mailbox/message IDs and, for attachments, the exact part ID: `gmail://<mailbox>/messages/<message ID>[/parts/<part ID>]`. No customer filenames are interpolated into paths. Distinct occurrences remain distinct even with equal content hashes.
+
+An acquisition timestamp is the UTC time a verified file is accepted for recording. If a crash left a published file without a record, resume records a new adoption timestamp; it does not invent the unknown original publication time. Provenance metadata is retained in local SQLite, not duplicate sidecars. The database is therefore required alongside archived bytes for provenance and recovery. There are no Document categories, Extractions, Evidence, or KnowledgeItem implementations in this milestone.
+
+## Inline size anomaly addition (version 3)
+
+Phase 2 live validation completed successfully on **2026-10-02** (operator-reported): all **1375/1375 message originals** and **2950/2950 attachment occurrences** are archived locally, totaling **2,331,388,345 bytes (approximately 2.33 GB)**. `incomplete: 0`, `last_error: null`. One inline `provider_size_mismatch` anomaly is durably preserved; the two cumulative archive failures remain historical counters from earlier stopped/failed attempts, not current incomplete work. Raw source archiving is complete for the current historical inventory. The application verified the local authorized SharePoint-synchronized Knowledgebase root; remote SharePoint cloud-sync completion was **not independently verified**.
+
+A transactional `ALTER TABLE archive_files ADD COLUMN anomaly` adds a nullable field constrained to `provider_size_mismatch` or NULL. Existing rows acquire NULL; their prior values and Phase 1 metadata/checkpoints are preserved. Versions 1/2 migrate automatically on the next authenticated writer opening state; read-only statistics support all three versions. Older application versions reject schema 3.
+
+For validated inline occurrences, `attachments.size` is the preserved inventoried provider size, required to equal current Gmail size at acquisition. `archive_files.byte_length` and `sha256` describe actual decoded source bytes. If these lengths differ, the explicit anomaly is inserted in the same transaction as the archive record. Query by joining mailbox/message/part ID; no separate logging table or fabricated size replaces provider metadata. External attachments retain strict size validation. Statistics count anomalies across the mailbox, including records later flagged unverified. Reruns verify actual archived length/hash and leave provenance unchanged.
 
 ## Source and interpretation records
 

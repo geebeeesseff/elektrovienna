@@ -1,4 +1,4 @@
-"""Provider-independent discovery records; never original archives or knowledge."""
+"""Provider-independent discovery and source records; never established knowledge."""
 
 from dataclasses import dataclass
 from datetime import datetime
@@ -53,3 +53,25 @@ class MailReader(Protocol):
     def mailbox(self) -> str: ...
     def list_messages(self, cutoff_ms: int, token: str | None, size: int) -> Page: ...
     def get_message(self, message_id: str) -> Message: ...
+
+
+@dataclass(frozen=True)
+class OriginalMessage:
+    message_id: str
+    thread_id: str
+    internal_ms: int
+    data: bytes
+
+
+class SourceReader(Protocol):
+    def mailbox(self) -> str: ...
+    def get_original(self, message_id: str) -> OriginalMessage: ...
+    def get_attachment(self, message_id: str, attachment: Attachment) -> bytes: ...
+
+
+@dataclass(frozen=True)
+class ArchivedFile:
+    reference: str
+    sha256: str
+    byte_length: int
+    archived_at: str

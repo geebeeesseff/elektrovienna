@@ -122,9 +122,9 @@ def test_missing_credentials_explicit_no_fallback(tmp_path):
     assert not config.token_file.exists()
 
 
-def test_no_mutation_or_attachment_download_capability():
+def test_only_read_capabilities():
     assert {name for name, fn in inspect.getmembers(gmail.GmailReader, inspect.isfunction)} == {
-        "__init__", "_get", "mailbox", "list_messages", "get_message"}
+        "__init__", "_get", "mailbox", "list_messages", "get_message", "get_original", "get_attachment", "get_inline_attachment"}
     tree = ast.parse(inspect.getsource(gmail.GmailReader))
     session_calls = [node.func.attr for node in ast.walk(tree) if isinstance(node, ast.Call)
                      and isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Attribute)
