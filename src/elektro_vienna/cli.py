@@ -51,8 +51,17 @@ def main(argv=None) -> int:
     serving.add_argument("--view-id")
     serving.add_argument("--port", type=int, default=8765)
     serving.add_argument("--open-browser", action="store_true")
+    revisions = commands.add_parser("case-revise", help="Publish up to five case revisions from completed reviews; no CRM writes")
+    revisions.add_argument("--plan", required=True, type=Path, help="Private evidence-linked agent consolidation plan")
+    revisions.add_argument("--dry-run", action="store_true")
     args = parser.parse_args(argv)
     try:
+        if args.command == "case-revise":
+            from .case_revision import RevisionStore, publish_revisions
+            path = validate_path(args.plan, local_app_data())
+            print(json.dumps(publish_revisions(RevisionStore(), json.loads(path.read_bytes())["cases"],
+                                               dry_run=args.dry_run), indent=2))
+            return 0
         if args.command == "review-documents":
             from .review_ui import ReviewStore
             from .review_documents import publish_documents

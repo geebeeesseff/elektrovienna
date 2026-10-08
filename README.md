@@ -1,5 +1,7 @@
 # Elektro Vienna Knowledge System
 
+Completed human reviews can now feed bounded, immutable [reviewed Case Revisions](docs/REVIEWED_CASE_REVISIONS.md) with simple before/after inspection pages. `case-revise --plan <private-plan.json> [--dry-run]` consumes an agent-prepared plan for at most five cases; it does not modify the review UI, pilot, CRM or source archive. No manual JSON work is required from the reviewer.
+
 Operational learning: inquiry → understanding → pricing → execution → outcome → reusable knowledge.
 
 Phase 1 implements **read-only historical Gmail metadata inventory** for `office@elektrovienna.at`. Phase 2 adds an explicit command to archive immutable original email and attachment bytes under the authorized Knowledgebase root. Discovery is not archival completion, and sources are not established knowledge. Classification, extraction, Airtable, Outlook Calendar, and customer communication remain unimplemented. Phase 2 is live validated for the current historical inventory as of 2026-10-02.

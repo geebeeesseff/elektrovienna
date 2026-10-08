@@ -143,6 +143,10 @@ The additive `review.mode = correction_comments_v1` stores the explicitly author
 
 ## Relationship and integrity rules
 
+### Reviewed Case Revision (format 1)
+
+The additive `reviewed_case_revision` contract binds a baseline Case, latest completed human review, immutable reviewed view and optional preceding revision. It contains six explicit stages (all supporting unknown), scoped projects, actors, consolidated technical/commercial facts, operational events, unchanged baseline events/matches, comment resolutions and CRM proposals. `basis` entries distinguish reviewed text, exact human comments, baseline JSON pointers and source spans. Human reporting time never fills an unknown event time. Commercial roles and null actual amounts/hours prevent estimate-to-invoice conversion. Supplemental evidence retains original parent messages, occurrence identities, exact parsed spans and parser versions inside the revision. New wording/associations remain agent consolidations, not new human approvals. Details and paths: [reviewed revision contract](REVIEWED_CASE_REVISIONS.md).
+
 The offline review representation is an additive presentation/evaluation contract, not a migration of the Case or SQLite schema. It retains CRM status separately from stage outcomes (`inquiry`, consultation/site visit, quote preparation, execution); each stage supports `completed`, `commissioned`, `declined`, `lost`, `not_performed`, or `unknown`. A historical broad inferred completion must not prove full execution. Source-span-cited semantic items, verbatim attributable human feedback, version-bound conversation membership, explicit message overrides and immutable review exports are defined in [CASE_REVIEW_UX.md](CASE_REVIEW_UX.md). None is automatically established knowledge.
 
 - SourceMessage → attachment occurrence → Document preserves message and document provenance.

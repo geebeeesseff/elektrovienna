@@ -62,6 +62,12 @@ The operator found the HTML easier and explicitly requested automatic feedback p
 
 Engineering checks: 230 Python tests, JavaScript behavior/syntax, packaging/dependencies and synthetic browser save/reload/source-navigation validation pass. The actual local case and document overview have been inspected. All other 24 cases remain unrendered in this review format. Human correctness and broader product acceptance remain separate from this technical delivery; no knowledge is promoted.
 
+## Reviewed case state bridge (2026-10-08)
+
+The operator accepted the frozen review UX and completed five case reviews: Woodward, Boldrino-Teichgrab, Martysiuk, Zafirakis and BUWOG. This supersedes the earlier single-case expansion gate only for these four additional cases. The next bounded implementation is [reviewed case revisions](REVIEWED_CASE_REVISIONS.md): consolidate these five completed reviews, seek missing documents only in already available local evidence, preserve staged outcomes/human provenance, and propose snapshot-based CRM reconciliation without writing it. Other pilot cases, matching improvements, CRM writes, global KnowledgeItems, vectors and automation remain out of scope.
+
+Implementation adds an immutable revision builder and a script-free inspection comparison. Completion requires synthetic tests, live source-integrity/idempotency/link checks and confirmation that every saved correction is represented; publication does not validate unresolved event dates, payment receipts or missing documents.
+
 ## Later capability roadmap (not sequential whole-mailbox phases)
 
 **2026-10-06 product checkpoint:** the first human review found the Markdown artifact too cumbersome and the broad CRM-derived outcome misleading. Pilot expansion is stopped. The bounded next deliverable is the [single-case offline review UX](CASE_REVIEW_UX.md), first rendered for Woodward, with semantic consolidation, readable conversations, human corrections and staged outcomes. Technical delivery of this view does not mark its usability accepted; do not render the other 24 cases until Giovanni finds this experience satisfactory. OCR, new extraction, mailbox processing and knowledge promotion remain out of scope.
