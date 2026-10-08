@@ -18,6 +18,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8,<10", "build>=1.2,<2"]
+pilot = ["pypdf>=6.10,<7"]
 
 [project.scripts]
 elektro-vienna = "elektro_vienna.cli:main"
@@ -27,3 +28,6 @@ testpaths = ["tests"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+elektro_vienna = ["review.css", "review.js", "review_live.js"]

@@ -36,6 +36,8 @@ Keep the credential directory private to your Windows user; Windows account ACLs
 
 ## Commands
 
+For the first product-value slice, see [Historical Case Reconstruction Pilot](docs/HISTORICAL_CASE_PILOT.md). It reconstructs a small set of Airtable anchor tickets using the existing local source archive, with candidate matching and field-level provenance. It does not run AI extraction across the mailbox.
+
 ```powershell
 # At most 10 qualifying messages, in Gmail provider order (not guaranteed chronological).
 .\.venv\Scripts\elektro-vienna.exe validate --limit 10
@@ -108,6 +110,10 @@ The Phase 1 metadata GET uses `format=full` with a field projection that exclude
 For backups, stop the importer and make a private local copy of the SQLite file; never copy a live SQLite file or sync it to SharePoint. Back up before first using this version against existing state. The first authenticated writer opening state automatically migrates versions 1/2 to version 3 through additive transactions, preserving all inventory and checkpoints. `stats` can read versions 1, 2 and 3 without migrating them. Keep using the upgraded application afterward: older code rejects schema 3. No automated backup job is implemented. SQLite is required to interpret archive provenance; do not discard it after copying source files. Customer metadata remains sensitive even without bodies.
 
 ## Verification
+
+The first human pilot review triggered a **single-case local review iteration**. Pilot expansion is paused. Open [Start-Review.cmd](Start-Review.cmd) and leave only correction comments; autosave preserves a private mutable draft and makes no acceptance decisions. After reading the entire case, enter your reviewer name, acknowledge whole-case review and click **Fallprüfung abschließen** at the bottom. Only then do uncommented case items count as correct and one immutable completed review is saved. Source confirmation requires its own optional checkbox, with source comments retained as exceptions. The agent uses the completed review for the next case revision. See [CASE_REVIEW_UX.md](docs/CASE_REVIEW_UX.md) for storage, recovery, optional JSON backup, the document comparison and scope boundaries. The technical `review.md` remains secondary.
+
+Operator setup uses private `%LOCALAPPDATA%\ElektroViennaKnowledge\review\launch.json` with `{"view_id":"<immutable-view-id>"}`. The launcher reopens a running service or starts `.\.venv\Scripts\python.exe -m elektro_vienna review-serve --open-browser` hidden on loopback port 8765. Manual foreground operation supports `--view-id <id>` and `--port <port>`. `review-documents --manifest <private-manifest.json>` imports only explicitly supplied PDFs; `review-render` links the resulting comparison. These local commands do not authenticate providers or open SQLite.
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q

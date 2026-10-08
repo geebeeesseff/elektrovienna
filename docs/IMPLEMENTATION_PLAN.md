@@ -39,7 +39,34 @@ Live progress: the operator reports 60 originals and 36 attachment occurrences a
 
 A subsequent live diagnostic found stable inline identity and provider size (1111 bytes in both inventory and Gmail), but valid decoded `body.data` of 1118 bytes. Inline bytes are now authoritative after identity and provider-size stability checks; decoded-length discrepancies persist as `provider_size_mismatch`. External attachment validation remains strict. Schema 3 adds one nullable anomaly column; unchanged inventory size plus actual archive length/hash preserve both measurements. Synthetic tests cover anomaly persistence, unchanged bytes/hash, migration, idempotent reopen/rerun, and continued corruption detection. No live archive or manual state mutation was performed during implementation. The operator subsequently resumed normally and completed live validation.
 
-## Later milestones
+## Next product milestone — Historical Case Reconstruction Pilot
+
+The strategy change requested on 2026-10-02 puts a narrow end-to-end slice ahead of generic mailbox-wide classification. Phases 1 and 2 stay complete and unchanged. The pilot combines limited extraction, matching, chronology, contextual commercial evidence and review around approximately 20–30 real Airtable tickets. Offer mining is one capability within the pilot.
+
+Implemented: a default 25-ticket sample chosen from actual observed service/status values, read-only Airtable snapshot capture/replay, immutable snapshots, local MIME/PDF/DOCX/text parsing, explainable candidate matching, source-cited CaseEvents and technical/commercial candidates, inferred outcomes, explicit gaps, immutable extraction/Case revisions, and attributable match accept/reject replay. No external AI, OCR, generic classifier, vector search, web app, Gmail rereads, provider writes, calendar actions or customer communication are introduced. SQLite schema/checkpoints and source originals remain unchanged.
+
+Completion has two separate meanings:
+
+- Engineering/live execution: generate real 20–30-case review artifacts; verify original integrity, field/span provenance, idempotent replay, historical revisions and lack of prohibited side effects. Synthetic tests and packaging checks are required.
+- Product validation: a human checks matching precision, chronology, meaningful technical/commercial fields and useful missing-information prompts on the real sample. Uncertain candidates and unparsed documents remain open until reviewed. Generating files is not proof that reconstructed cases or prices are correct.
+
+Run evidence and limitations belong in [HISTORICAL_CASE_PILOT.md](HISTORICAL_CASE_PILOT.md). Human validation, technical correction workflow and KnowledgeItem promotion are not marked complete by this implementation.
+
+## Local review follow-up (2026-10-07)
+
+Final bounded acceptance correction: distinguish mutable private autosave from explicit completed human review. Completion requires reviewer and whole-case acknowledgement; only then may un-commented case items be accepted. Source confirmation is separately acknowledged with thread/message comment exceptions. Preserve legacy history while dropping hidden statuses from the current interaction. Keep the current Woodward text, UI layout, source links and comparison; test early-page autosave, lower unseen items, restart recovery, acknowledgement validation, source exceptions, and exactly-one immutable completion on retries. This does not complete the human review on the user's behalf.
+
+Subsequent operator feedback narrows the interaction to correction comments only. Implement the user's acceptance-by-default rule for unmarked case text and let the agent write the next revision from preserved comments; do not require the user to compose replacement prose. The current iteration processes saved revision 11 and the subsequent invoice clarification, preserves source conflicts and older feedback, and removes live rating/overlay controls. Automatic persistence is not autonomous AI rewriting or knowledge promotion.
+
+The operator found the HTML easier and explicitly requested automatic feedback persistence, direct source links, and meta-level classification of five supplied Alectra PDFs. The chosen local service and start file are implemented: versioned automatic saves, explicit visible human corrections, reload/restore, original-source links and a separate bounded document comparison. The case revision incorporates the latest uncertain recollection and distinguishes invoice versions. This is a local review extension, not authorization for the general invoice-ingestion roadmap or global price derivation.
+
+Engineering checks: 230 Python tests, JavaScript behavior/syntax, packaging/dependencies and synthetic browser save/reload/source-navigation validation pass. The actual local case and document overview have been inspected. All other 24 cases remain unrendered in this review format. Human correctness and broader product acceptance remain separate from this technical delivery; no knowledge is promoted.
+
+## Later capability roadmap (not sequential whole-mailbox phases)
+
+**2026-10-06 product checkpoint:** the first human review found the Markdown artifact too cumbersome and the broad CRM-derived outcome misleading. Pilot expansion is stopped. The bounded next deliverable is the [single-case offline review UX](CASE_REVIEW_UX.md), first rendered for Woodward, with semantic consolidation, readable conversations, human corrections and staged outcomes. Technical delivery of this view does not mark its usability accepted; do not render the other 24 cases until Giovanni finds this experience satisfactory. OCR, new extraction, mailbox processing and knowledge promotion remain out of scope.
+
+The pilot implements only a bounded subset of capabilities 3–7. The broader milestones below remain deferred until pilot evidence justifies them; do not run AI extraction over all 1375 messages or build a generic classification system first.
 
 | Phase | Deliverable | Completion evidence / boundary |
 | --- | --- | --- |
@@ -59,4 +86,4 @@ A subsequent live diagnostic found stable inline identity and provider size (111
 
 ## Decisions to resolve as work advances
 
-Use `ARCHITECTURE.md` as the decision record. Initial OAuth authorization and credential location, exact Gmail cutoff/coverage, SQLite state, Phase 1 transaction/recovery details, stopped-importer local backups, repeated-pass reconciliation, and Phase 2 source formats/identities/publication are resolved there. Comprehensive change tracking and operator policy for unavailable source messages or damaged archives remain open. Before later phases, resolve Airtable mappings, review and knowledge promotion policies, external processing/privacy choices, and calendar/communication authorization. Update the architecture and conceptual model deliberately as those choices become concrete. CaseEvent functionality remains conceptual.
+Use `ARCHITECTURE.md` as the decision record. OAuth, exact Gmail coverage, SQLite processing state, Phase 1 recovery, local backups, reconciliation, Phase 2 publication, and the narrow pilot snapshot/provenance/review contract are resolved there. Comprehensive change tracking and recovery policy for unavailable messages or damaged archives remain open. Broader Airtable mappings, semantic correction/review and knowledge promotion policies, external processing/privacy choices, and calendar/communication authorization remain unresolved. Update architecture and data contracts deliberately as those choices become concrete. CaseEvents are implemented only as the pilot chronology; broader operational events remain future work.

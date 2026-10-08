@@ -1,6 +1,6 @@
 # Architecture foundation
 
-Status: Phase 1 read-only Gmail metadata inventory is implemented and live validated. Phase 2 original source archiving is live validated for the current historical inventory as of 2026-10-02. Later integrations and business processing remain conceptual.
+Status: Phase 1 read-only Gmail metadata inventory and Phase 2 original source archiving are live validated for the current historical inventory as of 2026-10-02. The next product milestone is the Historical Case Reconstruction Pilot described below. Broader classification, knowledge promotion and operational automation remain deferred.
 
 ## Boundaries and flow
 
@@ -10,8 +10,8 @@ The conceptual flow is:
 
 1. Provider adapters read sources and preserve stable provider identities.
 2. Archiving preserves immutable originals and their integrity metadata.
-3. Versioned classification and extraction produce derived records with precise source references.
-4. Case association reuses Airtable references when a match is justified; ambiguous candidates enter review.
+3. Select a small set of actual Airtable tickets before extracting pilot case evidence. Local lexical matching may inspect archived email text; no whole-mailbox AI extraction or classification framework is introduced.
+4. Versioned parsing and extraction produce derived records with precise source references. Case association reuses Airtable references; all email matches initially remain candidates and ambiguous candidates enter review.
 5. Offers and evidence express contextual claims, uncertainty, and provenance.
 6. Review and knowledge derivation create versioned, scoped knowledge supported by evidence.
 7. Retrieval supports inquiry handling, estimation, execution, and evaluation.
@@ -89,7 +89,7 @@ C:\Users\giova\Balun Energy\Balun Energy - Dokumente\06 Elektrovienna\07 Playgro
 
 The implemented source archive verifies resolved write destinations stay under that root, including traversal and link/junction considerations. Never write elsewhere in SharePoint-synchronized folders without explicit instruction. Technical state and credential files use the separate local locations documented here, outside Git and SharePoint; they are not knowledge-archive content.
 
-Layout: Phase 2 creates only `00_raw/gmail` and `00_raw/attachments` as needed. Other directories remain conceptual:
+Layout: Phase 2 creates only `00_raw/gmail` and `00_raw/attachments` as needed. The pilot adds the narrow paths documented below. Other directories remain conceptual:
 
 ```text
 Knowledgebase/
@@ -148,6 +148,22 @@ Missing or conflicting scheduling facts stay visible. Use explicit time-zone sem
 
 An Appointment draft is distinct from a published Outlook event. Customer/employee communication drafts reference the Case and Appointment and contain an intentional audience-specific projection: internal notes or technician pricing must not automatically flow into customer text. Changes to facts after review invalidate or flag affected drafts for re-review. Later approved publishing must account for provider-triggered invitations and retries; a calendar write cannot be treated as harmless draft creation.
 
+## Offline review iteration (2026-10-06)
+
+The first human evaluation replaces technical Markdown as the primary review surface with a single-case, self-contained static HTML artifact. `review_ui` reads existing pilot artifacts only; it does not open SQLite, authenticate providers, rerun extraction or modify Phase 1/2. Manually curated, span-validated interpretations and separately preserved human feedback sit above unchanged candidates. Assets and renderer versions bind immutable views; browser JSON exports are optionally imported into immutable evaluation records without promoting knowledge or changing associations in the baseline. Thread-wide judgments require explicit scope acknowledgment, with message exceptions. See [CASE_REVIEW_UX.md](CASE_REVIEW_UX.md). Expansion remains paused pending Woodward UX evaluation.
+
+## Local review persistence decision (2026-10-07)
+
+**Final bounded correction:** autosave is now a single mutable, checksummed private LocalAppData draft per view, atomically replaced with optimistic concurrency. It has no acceptance semantics and publishes no immutable history. Only explicit whole-case completion creates one immutable `completed_case_review` under `90_manual_review/completed/<view-id>/`. Case defaults are derived only then; an independent source acknowledgement and comment exceptions govern source confirmation. Repeated submissions are idempotent; changed reviews append completed artifacts. Legacy session records stay unchanged, with comments-only recovery and no hidden status carry-forward. The existing case presentation is retained. The earlier decisions below describe superseded storage/acceptance behavior; current contracts and migration are in [CASE_REVIEW_UX.md](CASE_REVIEW_UX.md).
+
+The operator explicitly selected a local service with a start file to save feedback and display corrections. `review_local` binds only to IPv4 loopback, uses a random capability URL, validates Host/Origin and fetch-site headers, bounds JSON writes, and serves only allowlisted originals with verified hashes. No network-facing deployment, external service, provider authentication or arbitrary filesystem browser is introduced. The single-operator process lock lives in private LocalAppData. This is a deliberate bounded extension of the static review architecture.
+
+Feedback is an append-only, checksum-chained sequence under `90_manual_review/sessions/<view-id>/`; optimistic revision checks prevent stale overwrite. Human text corrections are explicit display overlays with original interpretations retained. They do not mutate the source, baseline, established knowledge, global prices or Airtable. The original static export/import contract remains supported. The launcher and runtime configuration are described in [CASE_REVIEW_UX.md](CASE_REVIEW_UX.md).
+
+The subsequent operator correction replaces live text overlays with a single comment field. Comments are input for an agent-authored, source-cited next view, not text the reviewer must compose. New views bind the exact prior session checksum and case context. The operator explicitly accepts unmarked case interpretations by default; comments and pre-existing objections override that default. This case-level review rule does not accept source associations or establish global knowledge. No background AI worker is implied by automatic comment persistence; the next agent iteration performs the edit. Earlier overlay records remain immutable and readable for compatibility.
+
+The five user-supplied PDFs are a separate bounded manual-source import using the existing PDF parser. Content-addressed originals, versioned extraction and a manually curated comparison retain document/customer/version distinctions. Only explicitly associated documents enter the current case's citations; other customer documents remain separate. This authorizes neither mailbox-wide processing nor automatic matching or invoice accounting.
+
 ## Open decisions
 
 - Future schema/server migrations and automated backup requirements; Phase 1 transaction/recovery and stopped-importer local backup procedures are decided above.
@@ -159,6 +175,24 @@ An Appointment draft is distinct from a published Outlook event. Customer/employ
 - Calendar ownership, employee/technician identity mapping, required fields for approval, and explicit publish/send authorization controls.
 
 Resolve decisions at their milestone and record them here before relying on them. Phase 1 does not authorize later milestones.
+
+## Historical Case Reconstruction Pilot
+
+The explicit implementation strategy change on 2026-10-02 replaces sequential mailbox-wide classification/extraction/matching with one small end-to-end slice. Airtable tickets anchor Cases; the Offer Miner is a capability within this reconstruction. Phases 1 and 2 and SQLite schema 3 are unchanged. The pilot reads SQLite with `mode=ro` and `query_only`, never authenticates Gmail, and reads source bytes only from the immutable archive.
+
+The Airtable boundary is a captured-source adapter (`pilot_sources.AirtableSnapshot`). Connected read-only Airtable tools inspect the actual schema and capture records with stable base/table/record/field IDs, capture time, query scope and original returned values. The CLI consumes this explicit snapshot; it is not an unattended sync client. Snapshots are preserved byte-for-byte under `00_raw/airtable/<sha256>.json`. The actual schema uses `Tickets (main)`, `Customers`, and `Craftsmen`. Fields are resolved through the captured schema; citations retain field IDs. Missing required fields fail visibly. Linked customer/craftsman records are reused, never created or written back.
+
+Selection (`coverage-richness-v1`) considers captured Elektrotechnik tickets from 2026-01-01, using request date or creation date for selection only. Up to 30 tickets (default 25) are chosen deterministically: prioritize new observed service types, statuses and service/status combinations, then linked identities and request/notes text, then record ID. Categories come from data. This is a nonrandom learning sample with context/recency bias, not a statistical estimate. Record creation time is never invented as inquiry time. Expanding scope requires capturing the newly selected linked identities.
+
+Local MIME parsing scans archived email text for exact customer email, full name or address signals and retains source spans. Email identity remains a candidate outside the heuristic -21/+120-day request window; weaker textual identities require that window. Provider thread continuations are separately labeled. All proposals remain unconfirmed, with competing ticket IDs visible; scores are heuristic ranks, not probabilities. This is local lexical matching, not mailbox-wide AI extraction. Only candidate messages and their attachment occurrences receive persisted text extraction. More than 300 candidate messages fails without publication rather than silently truncating results.
+
+Parsers preserve decoded MIME section locators and quoted history. Parser MIME paths are **not Gmail part IDs**; separate attachments use Phase 2 occurrence identities. Initial formats: PDF text (`pypdf` optional dependency), DOCX body paragraphs, UTF-8 text and HTML text. Images, calendar files, spreadsheets and unsupported formats remain visible. No OCR, remote fetch, macro/script execution or external AI processing is used. Empty PDF pages require visual review and may require OCR; they are not automatically declared scans. Size/page/text/expansion limits and partial parser failures are explicit. Extracted text does not prove visual fidelity or accurate pre-existing OCR layers.
+
+Source-reported Airtable fields retain JSON pointers. Technical/commercial mentions retain exact text spans and remain uncertain candidates. Tax labels, labor, hourly-rate, material, travel and price-type words are retained without guessing which amount is a total, confirmed price or issuer. Ticket volume (net) is separate CRM evidence, not an inferred offer. Source status maps to an explicitly inferred outcome; missing reasons stay missing. Email events preserve provider chronology. CRM status is observed at snapshot time, never backdated as a historical transition. Calls, visits, execution and other missing events are not invented.
+
+Immutable outputs live at `20_extractions/historical_pilot/<sha256>.json` and `30_cases/historical_pilot/<run-id>/{cases.json,review.md}`. `PilotStore` reuses the source archive's path guards and atomic no-replace publication with a separate restricted path grammar. Phase 2 paths cannot be written through this adapter. Run identity includes snapshot, scope, inventory provenance, parser/dependency/code versions, extracted output and human review. Identical retries adopt identical files; changes create new interpretations and retain previous ones. `cases.json` publishes last as the completion manifest. No SQLite migration, canonical business database, knowledge promotion or mutable current-version pointer is introduced.
+
+Human matching review is an attributable JSON source (reviewer, timestamp with timezone, baseline run ID, case/message ID, accept/reject, rationale), preserved under `90_manual_review/historical_pilot/<sha256>.json`. Unknown, duplicate or stale decisions fail closed. Review generates a new revision and retains prior decisions. Rejection removes conditional timeline/evidence from the new case revision. Acceptance confirms association only, never prices or knowledge. Further technical corrections, review ownership and knowledge promotion remain open. See [pilot workflow](HISTORICAL_CASE_PILOT.md) for capture and replay.
 
 ### Inline size authority and schema 3
 

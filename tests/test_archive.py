@@ -374,7 +374,7 @@ def test_only_source_tables_and_explicit_commands(state, capsys):
     with pytest.raises(SystemExit) as error:
         cli.main(["--help"])
     assert error.value.code == 0
-    assert "{validate,inventory,stats,archive}" in capsys.readouterr().out
+    assert "{validate,inventory,stats,archive,pilot,review-render,review-import,review-documents,review-serve}" in capsys.readouterr().out
 
 
 def test_only_existing_eligible_inventory_selected(store, state):
