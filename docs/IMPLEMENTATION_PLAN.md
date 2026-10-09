@@ -68,6 +68,20 @@ The operator accepted the frozen review UX and completed five case reviews: Wood
 
 Implementation adds an immutable revision builder and a script-free inspection comparison. Completion requires synthetic tests, live source-integrity/idempotency/link checks and confirmation that every saved correction is represented; publication does not validate unresolved event dates, payment receipts or missing documents.
 
+## First blind inquiry experiment (2026-10-09)
+
+The operator accepts five reviewed revisions as sufficient for a bounded shadow
+test and additionally confirms the kitchen/wallbox revisions as usable ground
+truth examples. [BLIND_INQUIRY_TEST.md](BLIND_INQUIRY_TEST.md) documents the first
+three held-out inquiries: initial-source-only packets, immutable complete-answer
+freeze before retrospective access, separate source-backed evaluation and local
+HTML overview. Full Python validation: 284 passing tests, including 15 focused
+boundary tests; package/dependency checks pass. This is an agent-scored experiment,
+not independent product acceptance or authorization for production automation.
+Inspect the results before implementing improvements. Existing review UX,
+matching, extraction, Phase 1/2, source/snapshot data, KnowledgeItems, vectors and
+provider writes remain unchanged. No additional human case reviews are performed.
+
 ## Later capability roadmap (not sequential whole-mailbox phases)
 
 **2026-10-06 product checkpoint:** the first human review found the Markdown artifact too cumbersome and the broad CRM-derived outcome misleading. Pilot expansion is stopped. The bounded next deliverable is the [single-case offline review UX](CASE_REVIEW_UX.md), first rendered for Woodward, with semantic consolidation, readable conversations, human corrections and staged outcomes. Technical delivery of this view does not mark its usability accepted; do not render the other 24 cases until Giovanni finds this experience satisfactory. OCR, new extraction, mailbox processing and knowledge promotion remain out of scope.

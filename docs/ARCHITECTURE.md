@@ -4,6 +4,13 @@ Status: Phase 1 read-only Gmail metadata inventory and Phase 2 original source a
 
 ## Boundaries and flow
 
+The bounded [blind inquiry experiment](BLIND_INQUIRY_TEST.md) adds a separate
+offline packet/freeze/reveal/evaluation artifact flow. Initial-message bytes and
+five explicitly permitted reviewed fact projections are the answer input; later
+pilot history is gated behind an immutable three-answer freeze. It reuses guarded
+publication under `30_cases/blind_eval` and introduces no provider calls, database,
+agent framework, review-UX change, matching change or knowledge promotion.
+
 The five-case reviewed-state bridge is additive: [reviewed case revisions](REVIEWED_CASE_REVISIONS.md) consolidate completed reviews into immutable, case-scoped versions and static inspection comparisons. They introduce no business database, mutable current pointer, CRM write adapter or review-UX change. Bounded supplemental evidence retrieval reuses existing archived bytes and parser code; new associations remain explicitly agent-located.
 
 Use a small Python application with a standard `src/` package layout. Add modules as milestones need them, rather than creating empty service layers now. SQLite is selected for initial single-machine technical processing state only. No business-knowledge database, web framework, queue, vector database, or n8n dependency is selected.

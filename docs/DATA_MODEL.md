@@ -143,6 +143,20 @@ The additive `review.mode = correction_comments_v1` stores the explicitly author
 
 ## Relationship and integrity rules
 
+### Blind Inquiry Experiment (format 1)
+
+An additive evaluation contract, not a Case/SQLite schema migration:
+`packet.json` binds three original inquiries (message ID, provider cutoff, exact
+attachment occurrences), five reviewed fact projections, operating guidance and
+input/processor hashes. `frozen.json` binds all nine sections for all three
+answers, allowed citation IDs, UTC freeze time and answer checksum. The separate
+`answer_key.json` is published only after complete freeze validation and retains
+unmodified later candidate sources. `evaluation.json` binds that key and freeze
+to nine 0–2 scores, reasons, critical failures and separate retrospectives.
+`overview.html` renders these artifacts without editing them. Source provenance
+and certainty remain attributable; no record becomes a KnowledgeItem. Detailed
+boundaries and limitations: [BLIND_INQUIRY_TEST.md](BLIND_INQUIRY_TEST.md).
+
 ### Reviewed Case Revision (format 1)
 
 The additive `reviewed_case_revision` contract binds a baseline Case, latest completed human review, immutable reviewed view and optional preceding revision. It contains six explicit stages (all supporting unknown), scoped projects, actors, consolidated technical/commercial facts, operational events, unchanged baseline events/matches, comment resolutions and CRM proposals. `basis` entries distinguish reviewed text, exact human comments, baseline JSON pointers and source spans. Human reporting time never fills an unknown event time. Commercial roles and null actual amounts/hours prevent estimate-to-invoice conversion. Supplemental evidence retains original parent messages, occurrence identities, exact parsed spans and parser versions inside the revision. New wording/associations remain agent consolidations, not new human approvals. Details and paths: [reviewed revision contract](REVIEWED_CASE_REVISIONS.md).
