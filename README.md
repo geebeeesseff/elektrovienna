@@ -1,5 +1,11 @@
 # Elektro Vienna Knowledge System
 
+The [Current Operating Policy](docs/CURRENT_OPERATING_POLICY.md) separates today's
+owner-supplied rules from reviewed history and current-case evidence. The bounded
+[policy/history comparison](docs/POLICY_HISTORY_EXPERIMENT.md) reuses the three
+frozen T0 inquiries, freezes P/PH answers before retrospective access and provides
+a simple blinded A/B page. Human preference is pending; no live Shadow Agent exists.
+
 Completed human reviews can now feed bounded, immutable [reviewed Case Revisions](docs/REVIEWED_CASE_REVISIONS.md) with simple before/after inspection pages. `case-revise --plan <private-plan.json> [--dry-run]` consumes an agent-prepared plan for at most five cases; it does not modify the review UI, pilot, CRM or source archive. No manual JSON work is required from the reviewer.
 
 The first [blind inquiry experiment](docs/BLIND_INQUIRY_TEST.md) uses three held-out initial messages and only five reviewed revisions. It freezes all answers before revealing later history and produces one local HTML evaluation. This offline harness changes neither the accepted review UX nor matching/extraction; no messages are sent and no CRM records are written.

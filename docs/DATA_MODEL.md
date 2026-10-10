@@ -143,6 +143,23 @@ The additive `review.mode = correction_comments_v1` stores the explicitly author
 
 ## Relationship and integrity rules
 
+### Operating policy and paired experiment (format 1)
+
+Policy records carry version, effective date, draft/confirmation state, scope,
+source registry, eight categories, contextual net-EUR price items and explicit
+conflicts. Each item is owner-supplied, confirmed, uncertain or awaiting owner
+confirmation; conflicting claims retain both provenances. This is a repository
+configuration contract, not a Case/SQLite migration or historical KnowledgeItem.
+
+The paired packet pins an exact policy snapshot and the existing T0/history/guidance
+projections. `policy_only.json` precedes PH context; `frozen.json` binds all six
+nine-section answers, per-section citations, customer questions and bounded history
+analogies. `mapping.json` is kept out of the primary HTML. Exported human preferences
+contain only comparison/case IDs, A/B/equal/null choice, optional comment and time;
+no automatic promotion or CRM write follows. Evaluation binds frozen/key hashes
+to eleven reasoned scores, seven separate flags and reproducible counts. See
+[paired protocol](POLICY_HISTORY_EXPERIMENT.md) for exact paths and limitations.
+
 ### Blind Inquiry Experiment (format 1)
 
 An additive evaluation contract, not a Case/SQLite schema migration:

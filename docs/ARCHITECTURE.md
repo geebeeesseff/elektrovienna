@@ -4,6 +4,16 @@ Status: Phase 1 read-only Gmail metadata inventory and Phase 2 original source a
 
 ## Boundaries and flow
 
+The [policy/history experiment](POLICY_HISTORY_EXPERIMENT.md) adds a Git-versioned
+JSON operating-policy artifact and a standard-library validator. Current policy,
+reviewed case experience and current-case evidence are separate inputs with
+different authority. No historical price becomes a current tariff. The additive
+`30_cases/policy_experiment` namespace pins the original blind packet, freezes P
+before PH and all six answers before key access, then creates a blinded static
+comparison and a separate secondary evaluation. No integration, database, rules
+engine or production agent is introduced. This is an intentional bounded follow-up
+to the first experiment; existing review, matching and extraction remain unchanged.
+
 The bounded [blind inquiry experiment](BLIND_INQUIRY_TEST.md) adds a separate
 offline packet/freeze/reveal/evaluation artifact flow. Initial-message bytes and
 five explicitly permitted reviewed fact projections are the answer input; later

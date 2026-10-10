@@ -84,6 +84,17 @@ provider writes remain unchanged. No additional human case reviews are performed
 
 ## Later capability roadmap (not sequential whole-mailbox phases)
 
+### Current policy / policy-versus-history checkpoint (2026-10-09)
+
+Implemented the requested [current-policy layer](CURRENT_OPERATING_POLICY.md) and
+[paired experiment](POLICY_HISTORY_EXPERIMENT.md) in the existing repository.
+All six answers are frozen against the unchanged three T0 inquiries and the same
+policy. The blinded human comparison is the primary decision gate; secondary
+assistant-scored machine aggregation does not establish incremental history value.
+Do not review more cases or implement the live Shadow Agent until Giovanni reviews
+the three comparisons. No existing reviewed revision, matching/extraction, source
+archive, Gmail, Airtable or Calendar state is changed by this phase.
+
 **2026-10-06 product checkpoint:** the first human review found the Markdown artifact too cumbersome and the broad CRM-derived outcome misleading. Pilot expansion is stopped. The bounded next deliverable is the [single-case offline review UX](CASE_REVIEW_UX.md), first rendered for Woodward, with semantic consolidation, readable conversations, human corrections and staged outcomes. Technical delivery of this view does not mark its usability accepted; do not render the other 24 cases until Giovanni finds this experience satisfactory. OCR, new extraction, mailbox processing and knowledge promotion remain out of scope.
 
 The pilot implements only a bounded subset of capabilities 3–7. The broader milestones below remain deferred until pilot evidence justifies them; do not run AI extraction over all 1375 messages or build a generic classification system first.

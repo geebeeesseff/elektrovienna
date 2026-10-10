@@ -1,0 +1,66 @@
+{
+  "format_version": 1,
+  "version": "2026-10-09.1-draft",
+  "effective_from": "2026-10-09",
+  "status": "owner_supplied_draft",
+  "scope": "Current inquiry handling; shadow preparation only. Not technical electrical standards.",
+  "sources": {
+    "owner-2026-10-09": {
+      "kind": "owner_instruction",
+      "date": "2026-10-09",
+      "reference": "Implementation request: CURRENT COMMERCIAL STARTING FACTS and POLICY CATEGORIES A-H",
+      "note": "Giovanni supplied these current starting facts directly; not inferred from historical cases. Effective date is the draft adoption date, not a claim of earlier validity."
+    },
+    "north-star": {"kind": "repository_guidance", "reference": "docs/NORTH_STAR.md#knowledge-discipline"}
+  },
+  "categories": {
+    "customer_friction": {
+      "status": "owner_supplied", "source_refs": ["owner-2026-10-09"],
+      "rules": ["Never ask for already supplied information.", "Ask only questions material to the next useful decision; bundle necessary questions.", "Separate blocking information, useful non-blocking information and internal questions.", "Use existing text, photos and documents for internal electrician/Meister review first; do not push internal technical reasoning onto customers.", "A detailed inquiry may suffice for internal review and an estimate without a site visit."]
+    },
+    "technical_escalation": {
+      "status": "owner_supplied", "source_refs": ["owner-2026-10-09"],
+      "rules": ["Do not independently certify compatibility or safety.", "Identify the exact technical question, assemble evidence and route qualified judgment internally to electrician/Meister.", "Customer statements about installations remain unverified customer statements."]
+    },
+    "workforce": {
+      "status": "owner_supplied", "source_refs": ["owner-2026-10-09"],
+      "rules": ["Before pricing/execution, internally consider one versus two people using weight, dimensions, height, handling, access, mounting, safety and complexity.", "This remains operational/technical judgment; do not ask customers to choose technician count."]
+    },
+    "commercial": {
+      "status": "owner_supplied", "source_refs": ["owner-2026-10-09", "north-star"],
+      "rules": ["Distinguish rough indication, estimate, fixed price, time-and-material, consultation/site-visit fee, customer quote, internal/technician cost, material, travel, final invoice and payment.", "Current applicable policy/price book takes precedence over historical prices. Historical prices remain case evidence, never current tariffs or averages.", "Never silently convert an estimate to a fixed price; uncertain or conflicting policy requires owner confirmation with both sources retained.", "Service-specific fixed prices may exist; applicability must be established. Do not invent their amounts."]
+    },
+    "b2b": {
+      "status": "owner_supplied", "source_refs": ["owner-2026-10-09"],
+      "rules": ["When relevant, establish legal ordering party, invoice recipient, company name, billing address, UID/VAT if required and scope/cost-change approver before final commitment/execution.", "Material cost/scope increases requiring approval must not appear only on the final invoice. Record approval as confirmed, missing or unknown."]
+    },
+    "procurement": {
+      "status": "owner_supplied", "source_refs": ["owner-2026-10-09"],
+      "rules": ["Record responsibility as customer supplies, Elektro Vienna supplies, technician/external partner supplies, or not yet decided.", "For customer-supplied devices preserve manufacturer, model and variant where available. Before execution compare delivered model/variant to the technically reviewed one.", "A changed model must not silently inherit prior compatibility approval."]
+    },
+    "site_visits": {
+      "status": "owner_supplied", "source_refs": ["owner-2026-10-09"],
+      "rules": ["Do not default uncertainty to a visit; visit only if remote evidence is insufficient for the next reliable decision.", "A paid consultation proposal must state scope, fee and any explicitly agreed credit/deduction rule."]
+    },
+    "case_state": {
+      "status": "owner_supplied", "source_refs": ["owner-2026-10-09"],
+      "rules": ["Propose known customer/account, specific job, contact data, address, requested service, technical scope, material missing information, quote state, appointment, assigned technician, execution, invoice, payment and open work.", "Retain unknown states and distinguish approval confirmed/missing/unknown. Proposals only; no Airtable writes.", "All customer responses are shadow drafts; no Gmail drafts, sending, calendar events or live agent."]
+    }
+  },
+  "prices": {
+    "single_hour": {"amount_net_eur": "100.00", "unit": "hour", "status": "owner_supplied", "source_refs": ["owner-2026-10-09"], "applicability": "Standard single-electrician labor."},
+    "team_hour": {"amount_net_eur": "170.00", "unit": "team_hour", "status": "owner_supplied", "source_refs": ["owner-2026-10-09"], "applicability": "Standard two-person team; not a per-person rate."},
+    "travel": {"amount_net_eur": "50.00", "unit": "travel", "status": "owner_supplied", "source_refs": ["owner-2026-10-09"], "applicability": "Standard travel; do not double-count when included in first hour."},
+    "single_first_hour_travel": {"amount_net_eur": "150.00", "unit": "first_hour_with_travel", "status": "owner_supplied", "source_refs": ["owner-2026-10-09"], "applicability": "Ordinary single-electrician time-based work; includes standard travel."},
+    "single_additional_half_hour": {"amount_net_eur": "50.00", "unit": "additional_30_minutes", "status": "owner_supplied", "source_refs": ["owner-2026-10-09"], "applicability": "Ordinary single-electrician time-based work; no other rounding/minimum invented."},
+    "consultation": {"amount_net_eur": "150.00", "unit": "consultation", "status": "owner_supplied", "source_refs": ["owner-2026-10-09"], "applicability": "On-site consultation/inspection where this model applies; do not infer additional travel or universal applicability."},
+    "consultation_credit": {"amount_net_eur": "150.00", "unit": "conditional_credit", "status": "owner_supplied", "source_refs": ["owner-2026-10-09"], "applicability": "Only when explicitly agreed for that consultation model and a subsequent job is commissioned; never automatic."}
+  },
+  "conflicts": [],
+  "documentation_search": {
+    "date": "2026-10-09",
+    "repository_commit": "baa399b",
+    "scope": "README.md and all docs/*.md, current commercial/price/rate terminology",
+    "result": "No explicit conflicting CURRENT numeric tariff found. Historical evidence was not used to reconcile or set prices."
+  }
+}
