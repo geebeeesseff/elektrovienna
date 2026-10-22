@@ -118,7 +118,10 @@ Answers contain 330–394 words and zero/one customer question. No flagged criti
 failure was identified. Both arms retain a friction issue: device data can be
 asked for before internal review decides whether it blocks a provisional estimate.
 No material incremental benefit is established by this secondary score. Giovanni's
-preferences remain pending; no live-agent decision has been made.
+preferences were pending at that checkpoint. The completed 2026-10-14 review
+is preserved in [Response calibration](RESPONSE_CALIBRATION.md): Irene and
+Christoph equal; Rebekah prefers B (Policy + Reviewed History). This does not
+establish a reliable History advantage; the live agent remains deferred.
 
 Validation: **307 Python tests pass** (23 new policy/experiment checks), both
 JavaScript behavior suites and the new script syntax check pass. Dependency

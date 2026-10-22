@@ -124,7 +124,7 @@ def test_missing_credentials_explicit_no_fallback(tmp_path):
 
 def test_only_read_capabilities():
     assert {name for name, fn in inspect.getmembers(gmail.GmailReader, inspect.isfunction)} == {
-        "__init__", "_get", "mailbox", "list_messages", "get_message", "get_original", "get_attachment", "get_inline_attachment"}
+        "__init__", "_get", "mailbox", "list_messages", "get_message", "get_original", "get_attachment", "get_inline_attachment", "history_checkpoint", "list_history", "list_threads", "get_thread"}
     tree = ast.parse(inspect.getsource(gmail.GmailReader))
     session_calls = [node.func.attr for node in ast.walk(tree) if isinstance(node, ast.Call)
                      and isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Attribute)
@@ -133,7 +133,7 @@ def test_only_read_capabilities():
     paths = [node.args[0].value for node in ast.walk(tree) if isinstance(node, ast.Call)
              and isinstance(node.func, ast.Attribute) and node.func.attr == "_get"
              and isinstance(node.args[0], ast.Constant)]
-    assert paths == ["/profile", "/messages"]
+    assert sorted(paths) == ["/history", "/messages", "/profile", "/profile", "/threads"]
 
 
 def test_oauth_exact_scope_and_atomic_token(tmp_path, monkeypatch):

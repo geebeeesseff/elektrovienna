@@ -17,7 +17,7 @@ from oauthlib.oauth2 import OAuth2Error
 from requests.exceptions import RequestException
 
 from .config import Config, ConfigurationError
-from .models import Attachment, Message, OriginalMessage, Page, ProviderError, SCOPES
+from .models import Attachment, Message, OriginalMessage, Page, HistoryPage, ProviderError, SCOPES
 
 BASE_URL = "https://gmail.googleapis.com/gmail/v1/users/me"
 HEADER_NAMES = frozenset({"from", "to", "cc", "bcc", "date", "message-id", "in-reply-to", "references"})
@@ -225,6 +225,77 @@ class GmailReader:
             return Page(ids, next_token)
         except (KeyError, TypeError, ValueError):
             raise ProviderError("invalid_page_metadata") from None
+
+    def history_checkpoint(self) -> str:
+        value = self._get("/profile", {"fields": "historyId"}).get("historyId")
+        if not isinstance(value, str) or not value.isdecimal():
+            raise ProviderError("invalid_history_checkpoint")
+        return value
+
+    def list_threads(self, cutoff_ms: int, token: str | None = None, size: int = 100) -> Page:
+        """Recent conversations, independent of ingestion cursors and read state."""
+        if not isinstance(cutoff_ms, int) or not 1 <= size <= 500:
+            raise ValueError("Invalid thread cutoff or page size.")
+        params = {"q": f"after:{cutoff_ms // 1000 - 1} -in:spam -in:trash -in:drafts",
+                  "includeSpamTrash": "false", "maxResults": size,
+                  "fields": "threads/id,nextPageToken"}
+        if token:
+            params["pageToken"] = token
+        result = self._get("/threads", params)
+        try:
+            ids = tuple(item.get("id") for item in result.get("threads", []))
+            next_token = result.get("nextPageToken")
+            if (any(not isinstance(i, str) or not re.fullmatch(r"[a-zA-Z0-9_-]+", i) for i in ids)
+                    or (next_token is not None and (not isinstance(next_token, str) or not next_token))):
+                raise ValueError
+            return Page(ids, next_token)
+        except (TypeError, ValueError, AttributeError):
+            raise ProviderError("invalid_thread_page") from None
+
+    def get_thread(self, thread_id: str) -> dict:
+        result = self._get("/threads/" + quote(thread_id, safe=""), {"format": "full"})
+        if (result.get("id") != thread_id or not isinstance(result.get("messages"), list)
+                or not result["messages"]):
+            raise ProviderError("invalid_thread")
+        for message in result["messages"]:
+            if parse_message(message).thread_id != thread_id:
+                raise ProviderError("thread_message_identity_mismatch")
+        return result
+
+    def list_history(self, start: str, token: str | None, size: int = 100) -> HistoryPage:
+        if not isinstance(start, str) or not start.isdecimal() or not 1 <= size <= 500:
+            raise ValueError("Invalid history checkpoint or page size.")
+        params = {"startHistoryId": start, "historyTypes": "messageAdded", "maxResults": size,
+                  "fields": "history(messagesAdded/message(id,labelIds)),nextPageToken,historyId"}
+        if token:
+            params["pageToken"] = token
+        try:
+            result = self._get("/history", params)
+        except ProviderError as exc:
+            if exc.code == "gmail_http_404":
+                raise ProviderError("shadow_history_expired_no_automatic_resync") from None
+            raise
+        try:
+            added = [m["message"] for h in result.get("history", []) for m in h.get("messagesAdded", [])]
+            identities = tuple(dict.fromkeys(m["id"] for m in added))
+            labels = {}
+            for message in added:
+                observed = message.get("labelIds", [])
+                if not isinstance(observed, list) or any(not isinstance(label, str) for label in observed):
+                    raise ValueError
+                # Repeated additions must not hide a conflicting non-draft observation.
+                prior = labels.get(message['id'])
+                labels[message['id']] = set(observed) if prior is None else prior & set(observed)
+            end = result["historyId"]
+            token = result.get("nextPageToken")
+            if (any(not isinstance(i, str) or not re.fullmatch(r"[a-zA-Z0-9_-]+", i) for i in identities)
+                    or not isinstance(end, str) or not end.isdecimal() or int(end) < int(start)
+                    or (token is not None and (not isinstance(token, str) or not token))):
+                raise ValueError
+            return HistoryPage(identities, token, end,
+                               tuple((mid, tuple(sorted(labels[mid]))) for mid in identities))
+        except (KeyError, TypeError, ValueError, AttributeError):
+            raise ProviderError("invalid_history_page") from None
 
     def get_message(self, message_id: str) -> Message:
         raw = self._get("/messages/" + quote(message_id, safe=""), {"format": "full", "fields": MESSAGE_FIELDS})

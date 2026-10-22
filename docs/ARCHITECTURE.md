@@ -4,6 +4,125 @@ Status: Phase 1 read-only Gmail metadata inventory and Phase 2 original source a
 
 ## Boundaries and flow
 
+### Candidate operational reconciliation (22 October 2026)
+
+Gmail reply chronology is followed by a small operational gate before suggestion
+generation. Current candidate projects are checked against read-only Airtable
+evidence and attributable local owner decisions. Only `NEEDS_YOUR_REPLY` can
+generate or display a response. Waiting, handled, closed and uncertain rows remain
+reviewable; their original cached suggestions are preserved but hidden.
+
+This reuses the existing captured-source `AirtableSnapshot` boundary. The configured
+chat connector can read Airtable; the standalone Python command has no configured
+Airtable credentials. No new authentication or sync client is introduced. A
+candidate-scoped connector capture is supplied with `--airtable-snapshot`; the
+immutable capture reference persists locally. Its capture time is displayed. A
+snapshot older than 24 hours or lacking the candidate produces `UNCERTAIN`, never
+a claim of current Airtable state. Refreshing Airtable requires another explicit
+read-only connector capture. Changes between captures cannot be detected by the CLI.
+
+Matching requires customer identity plus project evidence; multiple plausible
+tickets remain uncertain. No canonical Case/customer link is created. Owner
+decisions bind the primary/related Gmail evidence and matched Airtable evidence;
+changed evidence invalidates their applicability while retaining the original
+feedback. A later message after a known closed recommendation also reopens review.
+An owner waiting decision can override an Airtable closed status with an explicit
+source conflict. Missing closure dates remain unknown, not fabricated chronology.
+
+The existing static page exports selected state/note corrections. `shadow-feedback`
+imports them against the exact immutable batch; it writes local owner evidence
+only. `--current-candidates-only` limits the requested live verification to already
+tracked Gmail candidates and their supporting correspondence, without a mailbox
+listing or history processing. No sending, drafts, CRM updates or messaging adapter.
+
+The 2026-10-20 owner correction supersedes the history-driven user interface:
+`shadow-check` now reconciles **Pending Customer Replies** directly from recent
+Gmail threads. It enumerates all pages for the last 30 Vienna calendar days,
+plus previously pending/uncertain thread IDs, then reads complete current threads.
+The historical inventory/database and old shadow history checkpoint are untouched.
+Chronology and current labels decide whether a customer turn is already answered;
+read/unread state does not decide eligibility. The explicit bound is 500 recent
+threads; exceeding it fails rather than claiming a complete empty inbox.
+
+Giovanni explicitly approved sending relevant thread text, attachments/photos and
+current policy/playbook to OpenAI through his signed-in Codex runtime for suggestions.
+This intentionally replaces the prior interactive-only drafting step. A narrow
+structured inference adapter runs the installed desktop CLI in an empty temporary
+directory with read-only sandbox, user config ignored, shell/apps/plugins/hooks/
+multi-agent tools disabled and no web search. It has no Gmail, CRM or calendar
+write integration. Suggestions are cached by evidence, guidance and prompt;
+unchanged decisions survive midnight, while date-sensitive drafts are regenerated.
+Original generation dates stay in the immutable records. Model requests omit
+duplicate display text and archive metadata, retaining full email/document evidence.
+fresh Gmail chronology is always checked again, including before publication.
+There is no template fallback pretending to be a generated reply.
+
+The 22 October owner correction separates queue reconciliation from optional
+suggestion generation. Current Gmail chronology, direct identities, form fields,
+obvious automation/acknowledgement rules and evidence-matching preserved decisions
+determine the queue before attachment processing or inference. Explicit reply
+references or quoted inquiry text can prove a cross-thread continuation; shared
+identity alone cannot. Only final pending candidates reach suggestion generation,
+with related context included in the same call. No separate mailbox-wide semantic
+or related-thread pass remains. The first runtime failure stops further inference
+for that invocation, but the queue is still published. Cached replies survive;
+other cards say "Suggested response currently unavailable". Gmail/source-listing
+failures still prevent a misleading claim of a completed mailbox check.
+
+Some Wix submissions and subsequent Outlook correspondence are different Gmail
+threads. Before publishing a pending card, the read-side supplies recent threads
+with the same directly evidenced customer email as supplemental evidence. The
+model must establish matching scope and actual reply chronology; a shared address
+alone never marks a job answered. Original submissions already continued elsewhere
+are excluded while the unresolved follow-up remains eligible. This creates no
+canonical case association and does not modify historical matching. Supporting
+threads are rechecked and retained as source references; a concurrent change
+produces an explicit uncertainty instead of a stale card.
+
+Immutable thread snapshots, originals, decisions and batches retain provenance.
+A deliberately mutable, atomically replaced convenience page at
+`30_cases/live_shadow/pending_replies.html` shows only pending reply cards.
+Uncertain conversations have a separate collapsed section; excluded traffic and
+internal reasoning stay in the immutable audit. See [LIVE_SHADOW_PILOT.md](LIVE_SHADOW_PILOT.md).
+
+The 2026-10-15 owner instruction authorizes the [live shadow pilot](LIVE_SHADOW_PILOT.md)
+after 3/3 final drafts passed human validation. It intentionally extends the Gmail
+GET-only adapter with profile history IDs and paginated message-added history.
+A separate guarded LocalAppData checkpoint holds this small pilot's durable page
+and processed IDs; the historical pipeline database/schema remains unchanged and
+is read only for correspondence match proposals. Initial scope is today's mail
+in Vienna, then Gmail additions; no full historical import, unread filter or daemon.
+Raw bytes reuse SourceArchive and its exact identity paths. A narrow shadow input
+manifest holds new-source provenance rather than mutating the historical inventory;
+future ingestion consolidation must explicitly adopt those manifests, not infer
+that Phase 1 statistics include them. Codex authors local proposals manually.
+Static review/export has no external writes, model API, new framework or service.
+The 2026-10-20 shadow-only 404 repair retains valid history cursors: unavailable
+drafts receive exclusion evidence, other missing message IDs remain explicit
+source gaps with bounded rotating retries. Fresh message labels still determine
+inclusion; historical labels are not current truth. Raw/attachment failures and
+other HTTP errors remain blocking. Historical ingestion and archive semantics
+are unchanged; see the diagnostic record in LIVE_SHADOW_PILOT.md.
+Earlier milestone descriptions below remain historical checkpoints.
+
+The [First Response Playbook validation](FIRST_RESPONSE_VALIDATION.md) adds only
+two versioned human-readable guidance documents and a three-inquiry T0 packet,
+immutable draft freeze and static review page. Completed calibration and the
+owner's follow-up instruction are preserved separately. Current price facts are
+reaffirmed owner inputs, never historical averages; the existing operating policy
+is unchanged. Full historical case reconstruction, matching/extraction, provider integrations
+and the live agent remain outside scope. No new service or pricing engine exists.
+
+The [first-response calibration](RESPONSE_CALIBRATION.md) flow (2026-10-14)
+preserves human A/B feedback before revealing the mapping and keeps current
+owner statements separate from historical email evidence. It reuses the
+read-only archive inventory, MIME parser and immutable publisher. Twelve curated
+Giovanni-signed first replies feed one static page with a JSON download. There
+is no new review service, provider integration, matching change or policy
+promotion. Later case history is excluded. At that preparation checkpoint,
+playbook distillation awaited the returned human calibration; the completed
+follow-up is described above. The live agent remains deferred.
+
 The [policy/history experiment](POLICY_HISTORY_EXPERIMENT.md) adds a Git-versioned
 JSON operating-policy artifact and a standard-library validator. Current policy,
 reviewed case experience and current-case evidence are separate inputs with

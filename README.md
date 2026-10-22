@@ -1,10 +1,30 @@
 # Elektro Vienna Knowledge System
 
+The [First Response Playbook](docs/FIRST_RESPONSE_PLAYBOOK.md) and separate
+[Current Price Book](docs/CURRENT_PRICE_BOOK.md) capture the owner's completed
+style calibration and reaffirmed current rates. [Three new T0 drafts](docs/FIRST_RESPONSE_VALIDATION.md)
+passed Giovanni's small human validation: 3/3 sendable, no edits or rejections.
+The [Pending Customer Replies workflow](docs/LIVE_SHADOW_PILOT.md) checks current
+Gmail conversations and suggests replies for unanswered customer turns. Already
+answered and non-customer traffic stays out of the primary page. No external
+business writes or background watcher are enabled.
+
+From this repository: `.\.venv\Scripts\python.exe -m elektro_vienna shadow-check`.
+One invocation reconciles the last 30 days plus previously pending threads,
+generates suggestions through the explicitly authorized signed-in Codex runtime,
+and prints the count and stable `Knowledgebase/30_cases/live_shadow/pending_replies.html`
+path. It does not require draining Gmail history pages or a separate card-generation
+step. Gmail remains read-only; the page's Copy response button does not send mail.
+The queue also completes when the suggestion runtime is unavailable: existing
+valid replies are reused and other pending cards show an explicit unavailable
+notice. Obvious answered/non-customer mail does not trigger model or attachment work.
+
 The [Current Operating Policy](docs/CURRENT_OPERATING_POLICY.md) separates today's
 owner-supplied rules from reviewed history and current-case evidence. The bounded
 [policy/history comparison](docs/POLICY_HISTORY_EXPERIMENT.md) reuses the three
 frozen T0 inquiries, freezes P/PH answers before retrospective access and provides
-a simple blinded A/B page. Human preference is pending; no live Shadow Agent exists.
+a simple blinded A/B page. Completed human preference was two equal choices and
+one History preference; three cases do not establish a meaningful advantage.
 
 Completed human reviews can now feed bounded, immutable [reviewed Case Revisions](docs/REVIEWED_CASE_REVISIONS.md) with simple before/after inspection pages. `case-revise --plan <private-plan.json> [--dry-run]` consumes an agent-prepared plan for at most five cases; it does not modify the review UI, pilot, CRM or source archive. No manual JSON work is required from the reviewer.
 
@@ -12,7 +32,7 @@ The first [blind inquiry experiment](docs/BLIND_INQUIRY_TEST.md) uses three held
 
 Operational learning: inquiry → understanding → pricing → execution → outcome → reusable knowledge.
 
-Phase 1 implements **read-only historical Gmail metadata inventory** for `office@elektrovienna.at`. Phase 2 adds an explicit command to archive immutable original email and attachment bytes under the authorized Knowledgebase root. Discovery is not archival completion, and sources are not established knowledge. Classification, extraction, Airtable, Outlook Calendar, and customer communication remain unimplemented. Phase 2 is live validated for the current historical inventory as of 2026-10-02.
+Phase 1 implements **read-only historical Gmail metadata inventory** for `office@elektrovienna.at`. Phase 2 adds an explicit command to archive immutable original email and attachment bytes under the authorized Knowledgebase root. Discovery is not archival completion, and sources are not established knowledge. Bounded historical extraction/review and live shadow proposals are separate later capabilities; external CRM, Calendar and customer communication writes remain unimplemented. Phase 2 is live validated for the current historical inventory as of 2026-10-02.
 
 Start with [AGENTS.md](AGENTS.md), then read:
 

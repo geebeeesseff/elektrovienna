@@ -1,5 +1,41 @@
 # Implementation plan
 
+## Current bounded addition — operational action queue (2026-10-22)
+
+Reconcile existing Gmail candidates with read-only Airtable captures and local
+owner evidence before generating customer replies. Preserve five explicit owner
+corrections, expose source conflicts, invalidate decisions on changed evidence,
+and adapt the existing page with seven states plus optional notes. Only needs-reply
+rows receive suggestions. Existing captured-source and Codex runtime boundaries
+stay intact. Verification uses targeted tests and one current-candidate live run;
+no full historical processing, follow-up queue, writes, dependencies or commit.
+
+## Current authorized milestone — Pending Customer Replies (2026-10-20)
+
+The owner rejected the inventory-style live output. The authorized task is now:
+one manual `shadow-check` invocation reconciles current unanswered customer turns
+from complete Gmail threads, prepares a concrete response for each eligible
+conversation, and publishes a simple stable local Pending Replies page.
+Previously answered and non-customer threads must not appear in the primary view.
+New inquiries and existing-project follow-ups both qualify; read state is irrelevant.
+Bounded recent-thread reconciliation is independent of ingestion pagination.
+Signed-in Codex inference on relevant evidence and guidance was explicitly approved.
+No external business writes, historical re-import, pricing changes or additional
+product features. Acceptance includes the ten requested conversation scenarios
+and verification of the missing 20 October morning inquiry.
+
+## Previous milestone — first live shadow pilot (2026-10-15)
+
+Giovanni approved all three final first-response drafts without edits. This small
+human gate is sufficient to stop laboratory historical testing, not statistical
+proof of quality or a History advantage. Implement [LIVE_SHADOW_PILOT.md](LIVE_SHADOW_PILOT.md):
+manual incremental Gmail additions, immutable local inputs, Codex-authored first
+responses/case updates, CRM proposals and one static local feedback page. Target
+the next 5–10 real eligible inquiries/updates as they arrive; never fill the quota
+with historical or synthetic cases. No external writes, production LLM runtime,
+automatic knowledge promotion, or always-running watcher. Earlier milestone
+restrictions are superseded only for this explicit shadow scope.
+
 Milestones are incremental and human-reviewed. Technology choices are made when evidence supports them. Completion requires inspecting changes and running the relevant checks, with limitations reported. No milestone authorizes work in later phases automatically.
 
 ## Phase 0 — Repository and architecture foundation (completed)
@@ -83,6 +119,27 @@ matching, extraction, Phase 1/2, source/snapshot data, KnowledgeItems, vectors a
 provider writes remain unchanged. No additional human case reviews are performed.
 
 ## Later capability roadmap (not sequential whole-mailbox phases)
+
+### First-response calibration checkpoint (2026-10-14)
+
+**Completed follow-up:** Giovanni reviewed all twelve examples: eleven same,
+one different, retaining Irene's writing style but rejecting historical pricing.
+The owner requested the [compact First Response Playbook](FIRST_RESPONSE_PLAYBOOK.md),
+[Current Price Book skeleton](CURRENT_PRICE_BOOK.md), and
+[three new T0 validation drafts](FIRST_RESPONSE_VALIDATION.md). Those artifacts
+are prepared; the three-draft human review is pending. No live agent, further
+case reconstruction, policy rewrite, matching change or provider write is enabled.
+The following paragraph records the earlier calibration preparation checkpoint.
+
+Giovanni completed the three-case human A/B review: two equal preferences and
+one preference for Policy + Reviewed History. This does not establish a reliable
+History advantage. The next authorized target is Giovanni's first customer
+response, not more historical reconstruction or the live agent.
+[Response calibration](RESPONSE_CALIBRATION.md) preserves exact feedback and
+separate owner instructions, then presents twelve reliably Giovanni-signed
+historical first replies in one simple local HTML page. Human calibration is
+pending. Policy rewriting, playbook distillation, matching changes, global price
+derivation and all provider writes remain outside this checkpoint.
 
 ### Current policy / policy-versus-history checkpoint (2026-10-09)
 

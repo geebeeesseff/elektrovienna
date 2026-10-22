@@ -4,6 +4,101 @@ Business records beyond the narrow Historical Case Reconstruction Pilot remain a
 
 ## Implemented Phase 1 technical schema (version 1)
 
+### Current Pending Replies contract (2026-10-20)
+
+The additive operational gate stores a private `shadow/operational.json` pointer
+to an immutable `00_raw/airtable/<hash>.json` capture, append-only owner review
+references, and closed-recommendation Gmail baselines. No SQLite schema changes.
+Each reconciled row includes `operational`: one of `NEEDS_YOUR_REPLY`,
+`WAITING_INTERNAL`, `WAITING_CUSTOMER`, `NO_ACTION_REQUIRED`, `HANDLED_ELSEWHERE`,
+`CLOSED_OR_LOST`, `UNCERTAIN`; candidate
+ticket IDs and field-linked source references; capture time; evidence hashes;
+reason, conflicts, waiting dependency and next internal action; and previous owner
+evidence with an applicability flag. These are recommendations, not canonical status.
+
+`operational_feedback` exports bind an immutable batch, source Giovanni, recorded
+timestamp and selected thread/state/note items. Import validates those bindings
+and derives the evidence key/ticket from the batch rather than trusting exported
+IDs. Original export bytes and normalized `operational_owner_evidence` results
+use the existing manual-review namespace. Five initial owner facts are preserved
+as runtime evidence linked to the original owner request, never case-name logic.
+Non-reply rows use `suggestion_status: suppressed` and an empty displayed response;
+their prior immutable suggestion and cache reference remain available.
+
+`WAITING_CUSTOMER` means EV already acted and awaits the customer;
+`NO_ACTION_REQUIRED` means no useful response is currently needed, without closing
+the case. Both suppress drafts and use the existing evidence-bound owner decision
+invalidation: a new substantive message reopens review. New corrections append
+owner evidence and supersede the applicable recommendation, preserving prior records.
+
+`shadow/pending.json` in private LocalAppData is separate from the preserved
+history checkpoint. It stores tracked pending/uncertain thread IDs, immutable
+decision-cache references and the latest batch reference. No SQLite change.
+Optional `related_tracked` retains supporting current correspondence for pending
+cards across the recent-window boundary. Packet `related_recent_threads` entries
+bind full message evidence, source references and stable content fingerprints;
+`related_context_key` also binds the explicit comparison rule. These are candidate
+context links, not established Case matches. Changed supporting evidence causes
+re-evaluation even when the primary Gmail thread itself is unchanged.
+`pending_thread_source` retains the actual full Gmail thread response; candidate
+source originals and relevant attachment bytes reuse the existing immutable
+archive paths. `pending_reply_decision` binds the thread packet, source hashes,
+current guidance, owner feedback, prompt version, semantic decision, suggested
+response and internal checks. Nothing is promoted to policy or knowledge.
+`pending_inference_output` preserves the raw structured model response and its
+thread-source/guidance bindings before validation or identity normalization.
+A missing display name may use the evidenced customer email; an unverifiable
+reply address moves the conversation to uncertainty rather than creating a card.
+Interrupted runs retain completed decisions and candidate IDs for safe resumption.
+`pending_replies_batch` records the checked time/window, pending rows, uncertainties
+and exclusion/decision audit references. These reuse content-addressed `input.json`,
+`card.json`, `batch.json` and `review.html` paths under `30_cases/live_shadow`.
+Rows now carry `suggestion_status` (cached/generated/unavailable) and an optional
+safe error code. An unavailable suggestion has an empty response, a null decision
+reference and a retained Gmail source reference; it is not a fabricated model
+answer. Batch `suggestions` records required/attempted thread counts, model-call
+counts, cache reuse, generated/unavailable counts and failures. Queue-only rows
+are not inserted into the suggestion cache. Existing 146 decision artifacts and
+completed related checks remain reusable evidence, never silently overwritten.
+Only the named `pending_replies.html` convenience copy may be replaced; immutable
+batch pages and feedback remain unchanged. Failed refreshes put an explicit
+failure notice there, never relabel a previous page as current.
+
+### Additive live shadow contract (2026-10-15)
+
+The [manual live pilot](LIVE_SHADOW_PILOT.md) adds no SQLite migration or canonical
+business database. Private `shadow/checkpoint.json` stores format/mailbox, Vienna
+bootstrap cutoff, history ID, phase, page token, durable pending IDs, seen tokens,
+processed-message → immutable-input references, latest card references and review
+references. One OS-held lock and atomic replacement serialize technical progress.
+The 2026-10-20 repair adds optional message-added label evidence to a saved page,
+`unavailable_drafts`, `unavailable_messages`, a rotating retry cursor, and
+`availability_resolutions`. Older format-1 checkpoints remain readable. Missing
+non-draft IDs are retained for bounded retry, never silently treated as irrelevant.
+Immutable `input.json` records with `live_shadow_unavailable_*` or
+`live_shadow_availability_resolution` kinds describe acquisition gaps/resolutions,
+not fetched source content or customer cards. An audit record is durable before
+its ID leaves the pending page; resolved gaps link the earlier audit and new input.
+Raw source bytes keep the existing `00_raw` paths; immutable shadow inputs carry
+provider IDs, observed labels, dates, hashes/lengths, attachment occurrences,
+parser/version/issues, customer source quotes, conservative classification and
+match proposals. Inputs also pin current guidance and the completed validation.
+
+`30_cases/live_shadow/<content-hash>/input.json|card.json|batch.json` are separately
+content-addressed artifacts; `review.html` shares its batch's directory. Cards
+contain customer facts (null remains missing), source basis, commercial semantics,
+internal/customer questions, optional reviewed history, one next action, draft
+and CRM proposal. Case updates retain six distinct proposed stages and a sourced
+CaseEvent with proposal association. No card establishes an external CRM identity
+or confirmed state. New cards supersede only the checkpoint's display reference;
+older cards and human feedback remain immutable.
+
+`90_manual_review/live_shadow/<hash>/original.json|owner-request.txt|result.json`
+preserves exact human bytes and attributed interpretation. Feedback binds the
+immutable batch and exact input/card references; partial feedback is explicit
+and sendable is impossible without a draft. Human approval here never sends mail,
+writes CRM/calendar, or promotes global knowledge.
+
 The conceptual entities below are implemented only to the limited pilot contract described below. These inventory tables remain unchanged in schemas 2 and 3:
 
 | Table | Identity and purpose |
@@ -159,6 +254,27 @@ contain only comparison/case IDs, A/B/equal/null choice, optional comment and ti
 no automatic promotion or CRM write follows. Evaluation binds frozen/key hashes
 to eleven reasoned scores, seven separate flags and reproducible counts. See
 [paired protocol](POLICY_HISTORY_EXPERIMENT.md) for exact paths and limitations.
+
+### First-response calibration (format 1)
+
+`completed_first_response_calibration` preserves the byte-exact complete export,
+the separate owner-request text and the original set binding; choice counts do
+not imply tariff acceptance. The additive `first_response_validation_packet`
+binds exactly three new T0 originals/initial attachments to current guidance,
+explicit exclusions and source hashes. `first_response_validation_answers`
+freezes all drafts before rendering. The review export additionally binds the
+answer checksum and records `send`, `minor_change`, `reject` or null plus exact
+comments. No choices are preselected. Details: [validation contract](FIRST_RESPONSE_VALIDATION.md).
+
+The additive [first-response calibration](RESPONSE_CALIBRATION.md) contract keeps
+the exact human A/B export, separate owner feedback and revealed mapping bound
+by hashes. `first_response_calibration_set` binds curated original inquiry/reply
+pairs, source checksums, MIME locators, display spans, attribution and first-reply
+evidence, inventory/state and processor hashes. The downloaded
+`first_response_calibration_review` binds a set ID to per-example `same`,
+`different` or null choices, exact comments, reviewer and timestamp; `complete`
+requires every choice. This is human feedback evidence, never an automatic
+policy, tariff or KnowledgeItem update. No SQLite or canonical Case migration.
 
 ### Blind Inquiry Experiment (format 1)
 

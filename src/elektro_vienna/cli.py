@@ -54,8 +54,22 @@ def main(argv=None) -> int:
     revisions = commands.add_parser("case-revise", help="Publish up to five case revisions from completed reviews; no CRM writes")
     revisions.add_argument("--plan", required=True, type=Path, help="Private evidence-linked agent consolidation plan")
     revisions.add_argument("--dry-run", action="store_true")
+    shadow_check = commands.add_parser("shadow-check", help="Reconcile current customer threads and suggest replies; local HTML only")
+    shadow_check.add_argument("--limit", type=positive, default=20, help=argparse.SUPPRESS)
+    shadow_check.add_argument("--guidance-root", type=Path, default=Path.cwd())
+    shadow_check.add_argument("--airtable-snapshot", type=Path, help="Fresh candidate-scoped read-only connector capture; no Airtable authentication or writes")
+    shadow_check.add_argument("--current-candidates-only", action="store_true", help="Recheck the existing queue and its supporting Gmail threads only")
+    shadow_publish = commands.add_parser("shadow-publish", help="Validate Codex-authored local cards; no external actions")
+    shadow_publish.add_argument("--plan", type=Path, required=True)
+    shadow_publish.add_argument("--guidance-root", type=Path, default=Path.cwd())
+    shadow_feedback = commands.add_parser("shadow-feedback", help="Preserve downloaded feedback locally, bound to exact cards")
+    shadow_feedback.add_argument("--file", type=Path, required=True)
     args = parser.parse_args(argv)
     try:
+        if args.command.startswith("shadow-"):
+            from .shadow_commands import run
+            print(json.dumps(run(args), indent=2))
+            return 0
         if args.command == "case-revise":
             from .case_revision import RevisionStore, publish_revisions
             path = validate_path(args.plan, local_app_data())
@@ -132,11 +146,11 @@ def main(argv=None) -> int:
                     state.close()
         return 0
     except (ConfigurationError, ProviderError, ValueError) as exc:
-        label = "Review" if args.command.startswith("review-") else {"archive": "Archive", "pilot": "Pilot"}.get(args.command, "Inventory")
+        label = "Shadow" if args.command.startswith("shadow-") else "Review" if args.command.startswith("review-") else {"archive": "Archive", "pilot": "Pilot"}.get(args.command, "Inventory")
         print(f"{label} stopped: {exc}", file=sys.stderr)
         return 1
     except (OSError, sqlite3.Error):
-        label = "Review" if args.command.startswith("review-") else {"archive": "Archive", "pilot": "Pilot"}.get(args.command, "Inventory")
+        label = "Shadow" if args.command.startswith("shadow-") else "Review" if args.command.startswith("review-") else {"archive": "Archive", "pilot": "Pilot"}.get(args.command, "Inventory")
         print(f"{label} stopped: local I/O failed. Check paths, permissions and disk space; preserve existing state.", file=sys.stderr)
         return 1
     except KeyboardInterrupt:

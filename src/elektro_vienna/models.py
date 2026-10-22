@@ -49,6 +49,15 @@ class Page:
     next_token: str | None
 
 
+@dataclass(frozen=True)
+class HistoryPage:
+    message_ids: tuple[str, ...]
+    next_token: str | None
+    history_id: str
+    # Labels at messageAdded time, not a substitute for fresh message labels.
+    message_added_labels: tuple[tuple[str, tuple[str, ...]], ...] = ()
+
+
 class MailReader(Protocol):
     def mailbox(self) -> str: ...
     def list_messages(self, cutoff_ms: int, token: str | None, size: int) -> Page: ...

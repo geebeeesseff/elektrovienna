@@ -30,4 +30,4 @@ testpaths = ["tests"]
 where = ["src"]
 
 [tool.setuptools.package-data]
-elektro_vienna = ["review.css", "review.js", "review_live.js", "operating_policy.json", "policy_compare.js"]
+elektro_vienna = ["review.css", "review.js", "review_live.js", "operating_policy.json", "policy_compare.js", "response_calibration.js", "shadow_review.js"]
